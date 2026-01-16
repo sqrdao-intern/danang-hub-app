@@ -316,7 +316,9 @@ const MemberBookings = () => {
         <SmartBookingSuggestions onSelectSuggestion={handleSuggestionSelect} amenities={amenities} />
 
         <div className="bookings-section glass">
-          <h2 className="section-title">Upcoming Bookings</h2>
+          <div className="section-header">
+            <h2 className="section-title">Upcoming Bookings</h2>
+          </div>
           {upcomingBookings.length > 0 ? (
             <div className="bookings-list">
               {upcomingBookings.map(booking => {
@@ -361,7 +363,9 @@ const MemberBookings = () => {
         </div>
 
         <div className="bookings-section glass">
-          <h2 className="section-title">Past Bookings</h2>
+          <div className="section-header">
+            <h2 className="section-title">Past Bookings</h2>
+          </div>
           {pastBookings.length > 0 ? (
             <div className="bookings-list">
               {pastBookings.map(booking => {

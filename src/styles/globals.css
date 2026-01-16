@@ -244,6 +244,18 @@ select.form-field {
   margin: 0;
 }
 
+.page-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
+}
+
 /* Action Buttons - consistent button groups in tables/cards */
 .action-buttons {
   display: flex;

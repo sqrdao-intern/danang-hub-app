@@ -204,12 +204,14 @@ const MemberEvents = () => {
     <Layout>
       <div className="container">
         <div className="page-header">
-          <h1 className="page-title">Events</h1>
+          <div className="page-header-content">
+            <h1 className="page-title">Events</h1>
+            <p className="page-subtitle">Browse, register, or create your own events</p>
+          </div>
           <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
             + Create Event
           </button>
         </div>
-        <p className="page-subtitle">Browse, register, or create your own events</p>
 
         {/* My Created Events */}
         {myEvents.length > 0 && (
@@ -269,7 +271,9 @@ const MemberEvents = () => {
         <div className="events-section glass">
           <div className="section-header">
             <h2 className="section-title">Upcoming Events</h2>
-            <p className="section-description">Click "Register" to join an event. If full, join the waitlist!</p>
+            {upcomingEvents.length > 0 && (
+              <p className="section-description">Click "Register" to join an event. If full, join the waitlist!</p>
+            )}
           </div>
           {upcomingEvents.length > 0 ? (
             <div className="events-grid">
@@ -359,7 +363,9 @@ const MemberEvents = () => {
 
         {/* Past Events */}
         <div className="events-section glass">
-          <h2 className="section-title">Past Events</h2>
+          <div className="section-header">
+            <h2 className="section-title">Past Events</h2>
+          </div>
           {pastEvents.length > 0 ? (
             <div className="events-grid">
               {pastEvents.map(event => {

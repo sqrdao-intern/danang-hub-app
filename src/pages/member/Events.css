@@ -106,12 +106,6 @@
   cursor: not-allowed;
 }
 
-.page-subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  margin-top: var(--spacing-sm);
-}
-
 .section-header {
   margin-bottom: var(--spacing-lg);
 }
