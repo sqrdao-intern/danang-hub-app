@@ -211,17 +211,17 @@ const BookingCalendar = ({
 
       <div className="calendar-grid">
         <div className="time-column">
-          {timeSlots.map((slot, index) => {
-            // Show hour labels only for first slot of each hour
-            if (slot.minute === 0) {
-              return (
-                <div key={index} className="time-label">
-                  {slot.time}
-                </div>
-              )
-            }
-            return <div key={index} className="time-spacer"></div>
-          })}
+          <div className="time-column-header"></div>
+          <div className="time-labels">
+            {timeSlots.map((slot, index) => (
+              <div 
+                key={index} 
+                className={slot.minute === 0 ? 'time-label' : 'time-spacer'}
+              >
+                {slot.minute === 0 ? slot.time : ''}
+              </div>
+            ))}
+          </div>
         </div>
 
         {displayDates.map((date, dateIndex) => {
