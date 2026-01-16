@@ -4,18 +4,19 @@ import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
 
 const Login = () => {
-  const { currentUser, signInWithGoogle, loading, isAdmin } = useAuth()
+  const { currentUser, userProfile, signInWithGoogle, loading, isAdmin } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (currentUser && !loading) {
+    // Wait until both auth and profile are loaded before redirecting
+    if (currentUser && !loading && userProfile) {
       if (isAdmin()) {
         navigate('/admin', { replace: true })
       } else {
         navigate('/member', { replace: true })
       }
     }
-  }, [currentUser, loading, navigate, isAdmin])
+  }, [currentUser, userProfile, loading, navigate, isAdmin])
 
   const handleGoogleSignIn = async () => {
     try {
