@@ -1,0 +1,95 @@
+.profile-card {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.profile-email {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.membership-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.membership-badge.member {
+  background: rgba(34, 211, 238, 0.2);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.membership-badge.admin {
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--accent-primary);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.profile-form {
+  margin-top: var(--spacing-lg);
+}
+
+.profile-details {
+  margin-top: var(--spacing-lg);
+}
+
+.profile-detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-md);
+}
+
+.detail-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.detail-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.profile-actions {
+  margin-top: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
