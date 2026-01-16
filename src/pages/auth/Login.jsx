@@ -25,17 +25,6 @@ const LockIcon = () => (
   </svg>
 )
 
-const BlockchainIcon = () => (
-  <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="6" height="6" rx="1" />
-    <rect x="16" y="7" width="6" height="6" rx="1" />
-    <rect x="9" y="2" width="6" height="6" rx="1" />
-    <rect x="9" y="16" width="6" height="6" rx="1" />
-    <path d="M5 13v2a2 2 0 0 0 2 2h3" />
-    <path d="M19 13v2a2 2 0 0 1-2 2h-3" />
-    <path d="M12 8v8" />
-  </svg>
-)
 
 const Login = () => {
   const { 
@@ -206,11 +195,11 @@ const Login = () => {
     return (
       <div className="login-container">
         <div className="login-card">
-          <div className="login-logo">
-            <BlockchainIcon />
-          </div>
-          <div className="login-header">
-            <h1 className="gradient-text">Reset Password</h1>
+        <div className="login-logo">
+          <img src="/assets/logo.svg" alt="Danang Blockchain Hub" />
+        </div>
+        <div className="login-header">
+          <h1 className="gradient-text">Reset Password</h1>
             <p className="login-subtitle">Enter your email to receive a reset link</p>
           </div>
           
@@ -264,7 +253,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-logo">
-          <BlockchainIcon />
+          <img src="/assets/logo.svg" alt="Danang Blockchain Hub" />
         </div>
         <div className="login-header">
           <h1 className="gradient-text">
