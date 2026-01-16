@@ -9,11 +9,11 @@ const Footer = () => {
         <div className="footer-content">
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/assets/logo.svg" alt="Danang Hub" className="footer-logo-image" />
-              <h3 className="gradient-text">Danang Blockchain Hub</h3>
+              <img src="/assets/logo.svg" alt="Hub Portal" className="footer-logo-image" />
+              <h3 className="gradient-text">Hub Portal</h3>
             </div>
             <p className="footer-description">
-              Empowering the blockchain community in Da Nang with a collaborative space for innovation, networking, and growth.
+              Accelerating the Decentralized Future in Central Vietnam.
             </p>
           </div>
           
@@ -28,28 +28,18 @@ const Footer = () => {
           </div>
 
           <div className="footer-section">
-            <h4 className="footer-title">Admin</h4>
+            <h4 className="footer-title">Community</h4>
             <ul className="footer-links">
-              <li><a href="/admin">Dashboard</a></li>
-              <li><a href="/admin/members">Members</a></li>
-              <li><a href="/admin/amenities">Amenities</a></li>
-              <li><a href="/admin/bookings">Bookings</a></li>
-              <li><a href="/admin/events">Events</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-section">
-            <h4 className="footer-title">Contact</h4>
-            <ul className="footer-links">
-              <li>Da Nang, Vietnam</li>
-              <li>Email: info@dananghub.com</li>
+              <li><a href="https://www.facebook.com/profile.php?id=61576570201707" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+              <li><a href="https://t.me/+7ycB8RxiZQY5MDNl" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+              <li><a href="mailto:gm@sqrdao.com">Email: gm@sqrdao.com</a></li>
             </ul>
           </div>
         </div>
         
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {currentYear} Danang Blockchain Hub. All rights reserved.
+            © {currentYear} sqrDAO. All rights reserved.
           </p>
         </div>
       </div>
