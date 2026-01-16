@@ -1,4 +1,5 @@
 import Header from './Header'
+import Footer from './Footer'
 import './Layout.css'
 
 const Layout = ({ children, isAdmin = false }) => {
@@ -8,6 +9,7 @@ const Layout = ({ children, isAdmin = false }) => {
       <main className="main-content">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }
