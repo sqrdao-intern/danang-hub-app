@@ -84,18 +84,32 @@ const MemberDashboard = () => {
                   return (
                     <li key={booking.id} className="booking-item">
                       <div className="booking-info">
-                        <h4 className="booking-amenity">{amenity?.name || booking.amenityId}</h4>
-                        <span className="booking-status">{booking.status}</span>
-                      </div>
-                      <div className="booking-time-info">
-                        <span className="booking-time">
-                          {booking.startTime?.toLocaleString() || 'N/A'}
-                        </span>
+                        <span className="booking-amenity">{amenity?.name || booking.amenityId}</span>
                         <span className="booking-duration">
                           {booking.endTime && booking.startTime
                             ? `${Math.round((new Date(booking.endTime) - new Date(booking.startTime)) / (1000 * 60 * 60))}h`
-                            : 'N/A'}
+                            : ''}
                         </span>
+                      </div>
+                      <div className="booking-right">
+                        <span className={`status-badge ${booking.status}`}>
+                          {booking.status || 'pending'}
+                        </span>
+                        <div className="booking-time-info">
+                          <span className="booking-time">
+                            {booking.startTime ? new Date(booking.startTime).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            }) : 'N/A'}
+                          </span>
+                          <span className="booking-time-small">
+                            {booking.startTime ? new Date(booking.startTime).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            }) : ''}
+                          </span>
+                        </div>
                       </div>
                     </li>
                   )
