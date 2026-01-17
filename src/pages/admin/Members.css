@@ -56,3 +56,80 @@
   border: 1px solid rgba(124, 58, 237, 0.3);
 }
 
+/* Mobile Card Layout */
+.member-card-mobile {
+  display: none;
+}
+
+.member-card-mobile {
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--spacing-md);
+}
+
+.member-card-mobile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.member-card-mobile-info {
+  flex: 1;
+}
+
+.member-card-mobile-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.member-card-mobile-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--spacing-sm);
+}
+
+.member-card-mobile-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.member-card-mobile-value {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.member-card-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.member-card-mobile-actions .btn {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .members-table-container {
+    padding: 0;
+  }
+
+  .members-table {
+    display: none;
+  }
+
+  .member-card-mobile {
+    display: block;
+  }
+}
+

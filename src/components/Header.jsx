@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Avatar from './Avatar'
 import './Header.css'
@@ -6,11 +7,14 @@ import './Header.css'
 const Header = ({ isAdmin = false }) => {
   const { userProfile, logout, isAdmin: checkAdmin } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
       await logout()
       navigate('/login')
+      setIsMobileMenuOpen(false)
     } catch (error) {
       console.error('Logout error:', error)
     }
@@ -18,32 +22,64 @@ const Header = ({ isAdmin = false }) => {
 
   const basePath = isAdmin ? '/admin' : '/member'
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
+  const isActive = (path) => {
+    if (path === basePath) {
+      return location.pathname === path
+    }
+    return location.pathname.startsWith(path)
+  }
+
+  const NavLink = ({ to, children }) => {
+    const active = isActive(to)
+    return (
+      <li>
+        <Link 
+          to={to} 
+          onClick={closeMobileMenu}
+          className={active ? 'active' : ''}
+        >
+          {children}
+        </Link>
+      </li>
+    )
+  }
+
+  const navLinks = isAdmin ? (
+    <>
+      <NavLink to="/admin">Dashboard</NavLink>
+      <NavLink to="/admin/members">Members</NavLink>
+      <NavLink to="/admin/amenities">Amenities</NavLink>
+      <NavLink to="/admin/bookings">Bookings</NavLink>
+      <NavLink to="/admin/events">Events</NavLink>
+    </>
+  ) : (
+    <>
+      <NavLink to="/member">Dashboard</NavLink>
+      <NavLink to="/member/bookings">My Bookings</NavLink>
+      <NavLink to="/member/events">Events</NavLink>
+      <NavLink to="/member/profile">Profile</NavLink>
+    </>
+  )
+
   return (
     <header className="header">
       <div className="header-container container">
-        <Link to={basePath} className="logo">
+        <Link to={basePath} className="logo" onClick={closeMobileMenu}>
           <img src="/assets/logo.svg" alt="Hub Portal" className="logo-image" />
           <h2 className="gradient-text">Hub Portal</h2>
         </Link>
         
         <nav className="nav">
           <ul className="nav-list">
-            {isAdmin ? (
-              <>
-                <li><Link to="/admin">Dashboard</Link></li>
-                <li><Link to="/admin/members">Members</Link></li>
-                <li><Link to="/admin/amenities">Amenities</Link></li>
-                <li><Link to="/admin/bookings">Bookings</Link></li>
-                <li><Link to="/admin/events">Events</Link></li>
-              </>
-            ) : (
-              <>
-                <li><Link to="/member">Dashboard</Link></li>
-                <li><Link to="/member/bookings">My Bookings</Link></li>
-                <li><Link to="/member/events">Events</Link></li>
-                <li><Link to="/member/profile">Profile</Link></li>
-              </>
-            )}
+            {navLinks}
           </ul>
         </nav>
 
@@ -62,7 +98,47 @@ const Header = ({ isAdmin = false }) => {
             Logout
           </button>
         </div>
+
+        <button 
+          className="mobile-menu-toggle"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span className={`hamburger ${isMobileMenuOpen ? 'open' : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
       </div>
+
+      <div className={`mobile-nav-overlay ${isMobileMenuOpen ? 'open' : ''}`} onClick={closeMobileMenu}></div>
+      
+      <nav className={`mobile-nav ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-nav-header">
+          {userProfile && (
+            <div className="mobile-user-info">
+              <Avatar 
+                src={userProfile.photoURL} 
+                name={userProfile.displayName}
+                size="lg"
+              />
+              <div className="mobile-user-details">
+                <div className="mobile-user-name">{userProfile.displayName}</div>
+                <div className="mobile-user-email">{userProfile.email}</div>
+              </div>
+            </div>
+          )}
+        </div>
+        <ul className="mobile-nav-list">
+          {navLinks}
+        </ul>
+        <div className="mobile-nav-footer">
+          <button className="btn btn-secondary btn-full-width" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </nav>
     </header>
   )
 }

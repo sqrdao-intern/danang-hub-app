@@ -4,6 +4,8 @@
   right: 2rem;
   width: 60px;
   height: 60px;
+  min-width: 60px;
+  min-height: 60px;
   border-radius: 50%;
   background: var(--accent-gradient);
   color: white;
@@ -53,8 +55,10 @@
 }
 
 .chatbot-close {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -141,6 +145,7 @@
 .chatbot-input {
   flex: 1;
   padding: 0.75rem;
+  min-height: 44px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);
@@ -155,6 +160,8 @@
 
 .chatbot-send {
   padding: 0.75rem 1.5rem;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 @media (max-width: 768px) {
@@ -162,10 +169,21 @@
     width: calc(100vw - 2rem);
     right: 1rem;
     bottom: 90px;
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
   }
   
   .chatbot-toggle {
     bottom: 1rem;
     right: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chatbot-container {
+    width: calc(100vw - 1rem);
+    right: 0.5rem;
+    height: calc(100vh - 100px);
+    max-height: calc(100vh - 100px);
   }
 }

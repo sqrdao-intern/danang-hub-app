@@ -1,7 +1,13 @@
 .amenities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--spacing-lg);
+}
+
+@media (max-width: 480px) {
+  .amenities-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .amenity-card {
@@ -103,6 +109,8 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 0.75rem;
+  min-height: 44px;
+  min-width: 44px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--border-radius);

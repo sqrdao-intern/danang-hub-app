@@ -20,6 +20,12 @@
   margin-top: var(--spacing-lg);
 }
 
+@media (max-width: 480px) {
+  .amenities-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .amenity-card {
   padding: var(--spacing-md);
   background: rgba(255, 255, 255, 0.03);
@@ -86,6 +92,25 @@
 @media (max-width: 768px) {
   .bookings-list {
     grid-template-columns: 1fr;
+  }
+
+  .booking-card {
+    padding: var(--spacing-sm);
+  }
+
+  .booking-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .booking-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .booking-actions .btn {
+    width: 100%;
   }
 }
 
@@ -240,8 +265,10 @@
 }
 
 .form-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   cursor: pointer;
 }
 

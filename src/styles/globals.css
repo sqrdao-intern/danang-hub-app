@@ -88,6 +88,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 44px;
 }
 
 .btn-primary {
@@ -129,6 +130,7 @@ button {
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+  min-height: 44px;
 }
 
 .btn:disabled {
@@ -190,6 +192,7 @@ button {
   color: var(--text-primary);
   font-family: inherit;
   transition: var(--transition);
+  min-height: 44px;
 }
 
 .form-field:focus {
@@ -226,6 +229,7 @@ select.form-field:focus {
   padding: 0.5rem 2.5rem 0.5rem 1rem;
   font-size: 0.875rem;
   height: auto;
+  min-height: 44px;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -233,6 +237,13 @@ select.form-field:focus {
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .filter-select {
+    width: 100%;
+    min-width: auto;
+  }
 }
 
 .filter-select:focus {
@@ -256,6 +267,18 @@ select.form-field:focus {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
 }
 
 .page-header-content {
@@ -359,5 +382,20 @@ select.form-field:focus {
 
   .action-buttons .btn {
     width: 100%;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-xl: 2rem;
+    --spacing-lg: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
   }
 }

@@ -24,6 +24,8 @@
 .calendar-nav .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .calendar-title {
@@ -136,6 +138,7 @@
 
 .time-slot {
   height: 30px;
+  min-height: 30px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -227,10 +230,14 @@
 @media (max-width: 768px) {
   .calendar-grid {
     gap: var(--spacing-xs);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
   }
   
   .date-column {
-    min-width: 100px;
+    min-width: 120px;
+    scroll-snap-align: start;
   }
   
   .time-column {
@@ -240,5 +247,42 @@
   .calendar-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .time-slot {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .time-label {
+    height: 44px;
+    font-size: 0.7rem;
+  }
+
+  .time-spacer {
+    height: 44px;
+  }
+
+  .calendar-date-header {
+    padding: var(--spacing-xs);
+  }
+
+  .date-day-number {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .date-column {
+    min-width: 100px;
+  }
+
+  .calendar-title {
+    font-size: 1rem;
+  }
+
+  .calendar-hours-info {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
   }
 }

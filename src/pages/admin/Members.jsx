@@ -122,6 +122,51 @@ const AdminMembers = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Card Layout */}
+          <div className="members-mobile-list">
+            {members.map(member => (
+              <div key={member.id} className="member-card-mobile">
+                <div className="member-card-mobile-header">
+                  <Avatar 
+                    src={member.photoURL} 
+                    name={member.displayName}
+                    size="md"
+                  />
+                  <div className="member-card-mobile-info">
+                    <div className="member-card-mobile-name">{member.displayName || 'N/A'}</div>
+                    <span className={`membership-badge ${member.membershipType}`}>
+                      {member.membershipType || 'member'}
+                    </span>
+                  </div>
+                </div>
+                <div className="member-card-mobile-field">
+                  <div className="member-card-mobile-label">Email</div>
+                  <div className="member-card-mobile-value">{member.email || 'N/A'}</div>
+                </div>
+                <div className="member-card-mobile-field">
+                  <div className="member-card-mobile-label">Created</div>
+                  <div className="member-card-mobile-value">
+                    {member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A'}
+                  </div>
+                </div>
+                <div className="member-card-mobile-actions">
+                  <button 
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleEdit(member)}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(member.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <Modal

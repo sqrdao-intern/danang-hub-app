@@ -184,6 +184,74 @@ const AdminBookings = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Mobile Card Layout */}
+          <div className="bookings-mobile-list">
+            {filteredBookings.map(booking => (
+              <div key={booking.id} className="booking-card-mobile">
+                <div className="booking-card-mobile-header">
+                  <div className="booking-card-mobile-title">
+                    {getAmenityName(booking.amenityId)}
+                  </div>
+                  <span className={`status-badge ${booking.status}`}>
+                    {booking.status || 'pending'}
+                  </span>
+                </div>
+                <div className="booking-card-mobile-field">
+                  <div className="booking-card-mobile-label">Member</div>
+                  <div className="booking-card-mobile-value">{getMemberName(booking.memberId)}</div>
+                </div>
+                <div className="booking-card-mobile-field">
+                  <div className="booking-card-mobile-label">Start Time</div>
+                  <div className="booking-card-mobile-value">{booking.startTime?.toLocaleString() || 'N/A'}</div>
+                </div>
+                <div className="booking-card-mobile-field">
+                  <div className="booking-card-mobile-label">End Time</div>
+                  <div className="booking-card-mobile-value">{booking.endTime?.toLocaleString() || 'N/A'}</div>
+                </div>
+                <div className="booking-card-mobile-actions">
+                  {booking.status === 'pending' && (
+                    <>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleStatusChange(booking.id, 'approved')}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleStatusChange(booking.id, 'cancelled')}
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  {booking.status === 'approved' && (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handleCheckIn(booking.id)}
+                    >
+                      Check In
+                    </button>
+                  )}
+                  {booking.status === 'checked-in' && (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleCheckOut(booking.id)}
+                    >
+                      Check Out
+                    </button>
+                  )}
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleDelete(booking.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

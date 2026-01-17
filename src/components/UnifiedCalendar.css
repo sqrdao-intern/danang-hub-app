@@ -24,6 +24,8 @@
 .calendar-nav .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .calendar-title {
@@ -202,12 +204,51 @@
     width: 100%;
   }
   
+  .calendar-title {
+    font-size: 1.25rem;
+  }
+
+  .calendar-weekdays {
+    gap: 2px;
+  }
+
+  .weekday-header {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs);
+  }
+  
   .calendar-day {
     min-height: 80px;
+    padding: var(--spacing-xs);
+  }
+
+  .day-number {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
   }
   
   .day-item {
     font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
+    padding: 0.25rem 0.4rem;
+    min-height: 20px;
+  }
+
+  .calendar-days {
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 70px;
+  }
+
+  .day-item {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.3rem;
+  }
+
+  .calendar-title {
+    font-size: 1.1rem;
   }
 }

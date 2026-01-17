@@ -92,4 +92,25 @@
     flex-direction: column;
     text-align: center;
   }
+
+  .profile-card {
+    padding: var(--spacing-md);
+  }
+
+  .profile-name {
+    font-size: 1.5rem;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
 }
