@@ -7,14 +7,27 @@ import { getAmenities } from '../services/amenities'
 import './UnifiedCalendar.css'
 
 const UnifiedCalendar = ({ viewMode = 'month' }) => {
-  const { currentUser } = useAuth()
+  const { currentUser, isAdmin } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedFilter, setSelectedFilter] = useState('all') // 'all', 'bookings', 'events'
   const [selectedAmenityType, setSelectedAmenityType] = useState('')
 
-  const { data: bookings = [] } = useQuery({
-    queryKey: ['bookings'],
-    queryFn: getBookings
+  // Fetch bookings - admins see all, members see only their own
+  const { data: bookings = [], isLoading: bookingsLoading, error: bookingsError } = useQuery({
+    queryKey: ['bookings', isAdmin() ? 'all' : currentUser?.uid],
+    queryFn: () => {
+      if (isAdmin()) {
+        // Admin can see all bookings
+        return getBookings()
+      } else {
+        // Members can only see their own bookings
+        return getBookings({ memberId: currentUser?.uid })
+      }
+    },
+    enabled: !!currentUser?.uid,
+    onError: (error) => {
+      console.error('Error fetching bookings:', error)
+    }
   })
 
   const { data: events = [] } = useQuery({
@@ -27,11 +40,22 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
     queryFn: getAmenities
   })
 
-  // Filter bookings
+  // Filter bookings - only show approved, pending, or checked-in bookings
   const filteredBookings = useMemo(() => {
-    let filtered = bookings.filter(b => 
-      ['pending', 'approved', 'checked-in'].includes(b.status)
-    )
+    if (!bookings || bookings.length === 0) {
+      if (bookingsError) {
+        console.error('UnifiedCalendar: Error loading bookings', bookingsError)
+      }
+      return []
+    }
+    
+    let filtered = bookings.filter(b => {
+      // Ensure booking has required fields
+      if (!b || !b.status || !b.startTime) {
+        return false
+      }
+      return ['pending', 'approved', 'checked-in'].includes(b.status)
+    })
 
     if (selectedAmenityType) {
       filtered = filtered.filter(b => {
@@ -41,11 +65,19 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
     }
 
     return filtered
-  }, [bookings, selectedAmenityType, amenities])
+  }, [bookings, selectedAmenityType, amenities, bookingsError])
 
-  // Filter events
+  // Filter events - only show approved events that are today or in the future
   const filteredEvents = useMemo(() => {
-    return events.filter(e => new Date(e.date) >= new Date())
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Normalize to start of day
+    
+    return events.filter(e => {
+      if (!e.date) return false
+      const eventDate = new Date(e.date)
+      eventDate.setHours(0, 0, 0, 0) // Normalize to start of day
+      return eventDate >= today
+    })
   }, [events])
 
   // Get items for current month
@@ -54,13 +86,66 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
     
     if (selectedFilter === 'all' || selectedFilter === 'bookings') {
       filteredBookings.forEach(booking => {
+        // Ensure booking has valid dates
+        if (!booking.startTime) return
+        
+        const startDate = new Date(booking.startTime)
+        const endDate = booking.endTime ? new Date(booking.endTime) : startDate
+        
+        // Skip if date is invalid
+        if (isNaN(startDate.getTime())) return
+        
+        // Check if this booking belongs to the current user
+        const userIsAdmin = isAdmin()
+        const currentUserId = currentUser?.uid
+        const bookingMemberId = booking.memberId
+        
+        // Determine ownership:
+        // - For members: All bookings in the query result are theirs (query filters by memberId)
+        //   But we still verify to catch any data issues
+        // - For admins: Check if booking.memberId matches currentUser.uid
+        let belongsToUser = false
+        
+        if (!currentUserId) {
+          // No current user - can't be theirs
+          belongsToUser = false
+        } else if (userIsAdmin) {
+          // Admin viewing all bookings - check memberId
+          belongsToUser = String(bookingMemberId || '') === String(currentUserId)
+        } else {
+          // Member viewing - query filters by memberId, so all should be theirs
+          // But verify to catch data issues
+          const bookingIdStr = String(bookingMemberId || '').trim()
+          const userIdStr = String(currentUserId).trim()
+          belongsToUser = bookingIdStr === userIdStr && bookingIdStr !== ''
+          
+          // If mismatch, log warning but still mark as theirs (trust the query filter)
+          if (!belongsToUser && bookingIdStr !== '') {
+            console.warn('UnifiedCalendar: Booking memberId mismatch (but query filtered by memberId)', {
+              bookingId: booking.id,
+              bookingMemberId: bookingIdStr,
+              currentUserId: userIdStr,
+              booking
+            })
+            // Trust the query - if it's in results, it's the user's booking
+            belongsToUser = true
+          } else if (bookingIdStr === '') {
+            // No memberId in booking - shouldn't happen
+            console.warn('UnifiedCalendar: Booking missing memberId', {
+              bookingId: booking.id,
+              booking
+            })
+            belongsToUser = false
+          }
+        }
+        
         items.push({
           type: 'booking',
           id: booking.id,
           title: amenities.find(a => a.id === booking.amenityId)?.name || 'Unknown Amenity',
-          start: new Date(booking.startTime),
-          end: new Date(booking.endTime),
-          isMine: booking.memberId === currentUser?.uid,
+          start: startDate,
+          end: endDate,
+          isMine: belongsToUser,
           data: booking
         })
       })
@@ -68,12 +153,20 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
 
     if (selectedFilter === 'all' || selectedFilter === 'events') {
       filteredEvents.forEach(event => {
+        // Ensure event has valid date
+        if (!event.date) return
+        
+        const eventDate = new Date(event.date)
+        
+        // Skip if date is invalid
+        if (isNaN(eventDate.getTime())) return
+        
         items.push({
           type: 'event',
           id: event.id,
-          title: event.title,
-          start: new Date(event.date),
-          end: new Date(event.date),
+          title: event.title || 'Untitled Event',
+          start: eventDate,
+          end: eventDate,
           isMine: event.attendees?.includes(currentUser?.uid) || false,
           data: event
         })
@@ -150,8 +243,24 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
     return Array.from(types)
   }, [amenities])
 
+  // Show error if bookings query failed
+  if (bookingsError) {
+    console.error('UnifiedCalendar: Bookings query error', bookingsError)
+  }
+
   return (
     <div className="unified-calendar">
+      {bookingsError && (
+        <div className="error-message" style={{ 
+          padding: '1rem', 
+          marginBottom: '1rem', 
+          backgroundColor: '#fee', 
+          color: '#c33',
+          borderRadius: '4px'
+        }}>
+          Error loading bookings: {bookingsError.message}
+        </div>
+      )}
       <div className="calendar-controls">
         <div className="calendar-nav">
           <button className="btn btn-secondary btn-sm" onClick={handlePrevMonth}>

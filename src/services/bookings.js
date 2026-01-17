@@ -16,35 +16,60 @@ import { db } from './firebase'
 const BOOKINGS_COLLECTION = 'bookings'
 
 export const getBookings = async (filters = {}) => {
-  const bookingsRef = collection(db, BOOKINGS_COLLECTION)
-  
-  // Build query constraints - where clauses must come before orderBy
-  const constraints = []
-  
-  if (filters.memberId) {
-    constraints.push(where('memberId', '==', filters.memberId))
+  try {
+    const bookingsRef = collection(db, BOOKINGS_COLLECTION)
+    
+    // Build query constraints - where clauses must come before orderBy
+    const constraints = []
+    
+    if (filters.memberId) {
+      constraints.push(where('memberId', '==', filters.memberId))
+    }
+    if (filters.amenityId) {
+      constraints.push(where('amenityId', '==', filters.amenityId))
+    }
+    if (filters.status) {
+      constraints.push(where('status', '==', filters.status))
+    }
+    
+    // Add orderBy last
+    constraints.push(orderBy('startTime', 'desc'))
+    
+    const q = query(bookingsRef, ...constraints)
+    
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data(),
+      startTime: doc.data().startTime?.toDate?.() || doc.data().startTime,
+      endTime: doc.data().endTime?.toDate?.() || doc.data().endTime,
+      checkInTime: doc.data().checkInTime?.toDate?.() || doc.data().checkInTime,
+      checkOutTime: doc.data().checkOutTime?.toDate?.() || doc.data().checkOutTime,
+    }))
+  } catch (error) {
+    // If index is missing for orderBy without where clauses, try without orderBy
+    if (error.code === 'failed-precondition' && Object.keys(filters).length === 0) {
+      console.warn('Index missing for orderBy, fetching without orderBy:', error)
+      const bookingsRef = collection(db, BOOKINGS_COLLECTION)
+      const snapshot = await getDocs(bookingsRef)
+      const bookings = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        startTime: doc.data().startTime?.toDate?.() || doc.data().startTime,
+        endTime: doc.data().endTime?.toDate?.() || doc.data().endTime,
+        checkInTime: doc.data().checkInTime?.toDate?.() || doc.data().checkInTime,
+        checkOutTime: doc.data().checkOutTime?.toDate?.() || doc.data().checkOutTime,
+      }))
+      // Sort manually
+      return bookings.sort((a, b) => {
+        const dateA = a.startTime instanceof Date ? a.startTime : new Date(a.startTime)
+        const dateB = b.startTime instanceof Date ? b.startTime : new Date(b.startTime)
+        return dateB - dateA
+      })
+    }
+    console.error('Error fetching bookings:', error)
+    throw error
   }
-  if (filters.amenityId) {
-    constraints.push(where('amenityId', '==', filters.amenityId))
-  }
-  if (filters.status) {
-    constraints.push(where('status', '==', filters.status))
-  }
-  
-  // Add orderBy last
-  constraints.push(orderBy('startTime', 'desc'))
-  
-  const q = query(bookingsRef, ...constraints)
-  
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map(doc => ({ 
-    id: doc.id, 
-    ...doc.data(),
-    startTime: doc.data().startTime?.toDate?.() || doc.data().startTime,
-    endTime: doc.data().endTime?.toDate?.() || doc.data().endTime,
-    checkInTime: doc.data().checkInTime?.toDate?.() || doc.data().checkInTime,
-    checkOutTime: doc.data().checkOutTime?.toDate?.() || doc.data().checkOutTime,
-  }))
 }
 
 export const getBooking = async (id) => {
