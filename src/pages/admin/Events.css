@@ -87,6 +87,14 @@
 .event-actions .btn {
   flex: 1;
   min-width: 80px;
+  flex-direction: row;
+  white-space: nowrap;
+}
+
+.event-actions .btn > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* Status Badges */

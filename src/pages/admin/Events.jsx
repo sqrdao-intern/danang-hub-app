@@ -419,14 +419,20 @@ const AdminEvents = () => {
                         onClick={() => handleApprove(event.id)}
                         disabled={approveMutation.isPending}
                       >
-                        ✓ Approve
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span>✓</span>
+                          <span>Approve</span>
+                        </span>
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
                         onClick={() => handleReject(event.id)}
                         disabled={rejectMutation.isPending}
                       >
-                        ✗ Reject
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span>✗</span>
+                          <span>Reject</span>
+                        </span>
                       </button>
                     </>
                   )}
