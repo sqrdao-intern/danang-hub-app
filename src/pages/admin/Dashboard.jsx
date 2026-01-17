@@ -27,9 +27,14 @@ const AdminDashboard = () => {
     queryFn: getAmenities
   })
 
+  const now = new Date()
   const stats = {
     totalMembers: members.length,
     activeBookings: bookings.filter(b => b.status === 'checked-in' || b.status === 'pending').length,
+    upcomingBookings: bookings.filter(b => {
+      const startTime = b.startTime ? new Date(b.startTime) : null
+      return (b.status === 'approved' || b.status === 'pending') && startTime && startTime > now
+    }).length,
     upcomingEvents: events.filter(e => new Date(e.date) > new Date()).length,
     availableAmenities: amenities.filter(a => a.isAvailable !== false).length
   }
@@ -50,6 +55,10 @@ const AdminDashboard = () => {
           <div className="stat-card glass">
             <h3 className="stat-value">{stats.activeBookings}</h3>
             <p className="stat-label">Active Bookings</p>
+          </div>
+          <div className="stat-card glass">
+            <h3 className="stat-value">{stats.upcomingBookings}</h3>
+            <p className="stat-label">Upcoming Bookings</p>
           </div>
           <div className="stat-card glass">
             <h3 className="stat-value">{stats.upcomingEvents}</h3>
