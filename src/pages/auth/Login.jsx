@@ -25,6 +25,8 @@ const LockIcon = () => (
   </svg>
 )
 
+// Maximum password length constant
+const MAX_PASSWORD_LENGTH = 128
 
 const Login = () => {
   const { 
@@ -63,8 +65,26 @@ const Login = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+    
+    // Enforce maximum password length
+    if ((name === 'password' || name === 'confirmPassword') && value.length > MAX_PASSWORD_LENGTH) {
+      setError(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`)
+      return
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }))
     setError('')
+  }
+
+  const handleKeyDown = (e) => {
+    // Submit form when Enter is pressed on password or confirmPassword fields
+    if (e.key === 'Enter' && !submitting) {
+      e.preventDefault()
+      const form = e.target.closest('form')
+      if (form) {
+        form.requestSubmit()
+      }
+    }
   }
 
   const validateForm = () => {
@@ -83,7 +103,16 @@ const Login = () => {
       return false
     }
 
+    if (formData.password.length > MAX_PASSWORD_LENGTH) {
+      setError(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`)
+      return false
+    }
+
     if (isSignUp) {
+      if (formData.confirmPassword.length > MAX_PASSWORD_LENGTH) {
+        setError(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`)
+        return false
+      }
       if (!formData.displayName.trim()) {
         setError('Full name is required')
         return false
@@ -99,6 +128,9 @@ const Login = () => {
 
   const handleEmailAuth = async (e) => {
     e.preventDefault()
+    
+    // Prevent multiple simultaneous submissions
+    if (submitting) return
     
     if (!validateForm()) return
 
@@ -130,17 +162,27 @@ const Login = () => {
   }
 
   const handleGoogleSignIn = async () => {
+    // Prevent multiple simultaneous submissions
+    if (submitting || loading) return
+    
+    setSubmitting(true)
+    setError('')
+
     try {
-      setError('')
       await signInWithGoogle()
     } catch (error) {
       console.error('Sign in error:', error)
       setError('Failed to sign in with Google. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleForgotPassword = async (e) => {
     e.preventDefault()
+    
+    // Prevent multiple simultaneous submissions
+    if (submitting) return
     
     if (!formData.email) {
       setError('Please enter your email address')
@@ -216,6 +258,7 @@ const Login = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
@@ -297,6 +340,7 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 placeholder="you@example.com"
                 autoComplete="email"
               />
@@ -313,8 +357,10 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 placeholder="••••••••"
                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                maxLength={MAX_PASSWORD_LENGTH}
               />
               <LockIcon />
             </div>
@@ -330,8 +376,10 @@ const Login = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
                   placeholder="••••••••"
                   autoComplete="new-password"
+                  maxLength={MAX_PASSWORD_LENGTH}
                 />
                 <LockIcon />
               </div>
