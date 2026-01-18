@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import './Login.css'
 
@@ -40,6 +40,7 @@ const Login = () => {
     isAdmin 
   } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   
   const [isSignUp, setIsSignUp] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -52,6 +53,14 @@ const Login = () => {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // Check for signup query parameter on mount
+  useEffect(() => {
+    const signupParam = searchParams.get('signup')
+    if (signupParam === 'true') {
+      setIsSignUp(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (currentUser && !loading && userProfile) {
