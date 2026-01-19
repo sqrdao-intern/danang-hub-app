@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Chatbot from './components/Chatbot'
 import ToastContainer from './components/Toast'
+import Home from './pages/Home'
 import Login from './pages/auth/Login'
 import AdminDashboard from './pages/admin/Dashboard'
 import MemberDashboard from './pages/member/Dashboard'
@@ -18,6 +19,8 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         
         {/* Admin Routes */}
@@ -96,8 +99,7 @@ function App() {
           }
         />
         
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Chatbot />
       <ToastContainer />

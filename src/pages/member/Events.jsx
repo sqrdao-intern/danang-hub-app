@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
@@ -22,6 +23,7 @@ import './Events.css'
 
 const MemberEvents = () => {
   const { currentUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [linkAmenity, setLinkAmenity] = useState(false)
@@ -218,6 +220,37 @@ const MemberEvents = () => {
   const handleLeaveWaitlist = async (eventId) => {
     await removeWaitlistMutation.mutateAsync({ eventId, memberId: currentUser.uid })
   }
+
+  // Handle redirect actions from public Events page
+  useEffect(() => {
+    const action = searchParams.get('action')
+    const eventId = searchParams.get('eventId')
+    
+    if (action && eventId && currentUser) {
+      const event = upcomingEventsData.find(e => e.id === eventId) || approvedEvents.find(e => e.id === eventId)
+      
+      if (event) {
+        if (action === 'register') {
+          registerMutation.mutate({ eventId, memberId: currentUser.uid })
+        } else if (action === 'unregister') {
+          if (window.confirm('Are you sure you want to unregister from this event?')) {
+            unregisterMutation.mutate({ eventId, memberId: currentUser.uid })
+          }
+        } else if (action === 'joinWaitlist') {
+          waitlistMutation.mutate({ eventId, memberId: currentUser.uid })
+        } else if (action === 'leaveWaitlist') {
+          removeWaitlistMutation.mutate({ eventId, memberId: currentUser.uid })
+        }
+        
+        // Remove query params after handling
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('action')
+        newParams.delete('eventId')
+        setSearchParams(newParams, { replace: true })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, currentUser, upcomingEventsData, approvedEvents, setSearchParams])
 
   const getStatusBadge = (status) => {
     const statusClasses = {

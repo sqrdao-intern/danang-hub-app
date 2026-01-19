@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
@@ -20,6 +21,7 @@ const DEFAULT_DURATION_HOURS = {
 
 const MemberBookings = () => {
   const { currentUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAmenity, setSelectedAmenity] = useState(null)
   const [bookingStep, setBookingStep] = useState(1) // 1: calendar, 2: confirm, 3: recurring
@@ -71,6 +73,25 @@ const MemberBookings = () => {
     queryKey: ['amenities'],
     queryFn: getAmenities
   })
+
+  // Check for amenityId in URL params and auto-open booking modal
+  useEffect(() => {
+    const amenityId = searchParams.get('amenityId')
+    if (amenityId && amenities.length > 0 && !isModalOpen) {
+      const amenity = amenities.find(a => a.id === amenityId)
+      if (amenity) {
+        setSelectedAmenity(amenity)
+        setDuration(DEFAULT_DURATION_HOURS[amenity.type] || 2)
+        setSelectedDate(new Date())
+        setIsModalOpen(true)
+        setBookingStep(1)
+        // Remove amenityId from URL params after opening modal
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('amenityId')
+        setSearchParams(newParams, { replace: true })
+      }
+    }
+  }, [amenities, searchParams, isModalOpen, setSearchParams])
 
   const createMutation = useMutation({
     mutationFn: createBooking,

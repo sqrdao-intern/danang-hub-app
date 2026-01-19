@@ -1,0 +1,23 @@
+.auth-prompt-content {
+  text-align: center;
+  padding: var(--spacing-md);
+}
+
+.auth-prompt-message {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.auth-prompt-submessage {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+}
+
+.auth-prompt-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}

@@ -37,8 +37,8 @@ service cloud.firestore {
     
     // Amenities collection
     match /amenities/{amenityId} {
-      // Everyone can read amenities
-      allow read: if isAuthenticated();
+      // Everyone can read amenities (public access)
+      allow read: if true;
       // Only admins can create, update, or delete amenities
       allow write: if isAdmin();
     }
@@ -67,8 +67,8 @@ service cloud.firestore {
     
     // Events collection
     match /events/{eventId} {
-      // Everyone can read events
-      allow read: if isAuthenticated();
+      // Everyone can read events (public access)
+      allow read: if true;
       // Users can create events (they become the organizer)
       allow create: if isAuthenticated() && isOwner(request.resource.data.organizerId);
       // Organizers can update their own events
@@ -83,8 +83,8 @@ service cloud.firestore {
     
     // Projects collection
     match /projects/{projectId} {
-      // Everyone can read projects
-      allow read: if isAuthenticated();
+      // Everyone can read projects (public access)
+      allow read: if true;
       // Only admins can create, update, or delete projects
       allow write: if isAdmin();
     }

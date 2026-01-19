@@ -64,13 +64,33 @@ const Login = () => {
 
   useEffect(() => {
     if (currentUser && !loading && userProfile) {
-      if (isAdmin()) {
+      // Check for redirect parameter first
+      const redirectParam = searchParams.get('redirect')
+      if (redirectParam) {
+        // Preserve query parameters from redirect
+        const amenityId = searchParams.get('amenityId')
+        const eventId = searchParams.get('eventId')
+        const action = searchParams.get('action')
+        
+        let redirectUrl = redirectParam
+        const params = new URLSearchParams()
+        if (amenityId) params.set('amenityId', amenityId)
+        if (eventId) params.set('eventId', eventId)
+        if (action) params.set('action', action)
+        
+        const queryString = params.toString()
+        if (queryString) {
+          redirectUrl += `?${queryString}`
+        }
+        
+        navigate(redirectUrl, { replace: true })
+      } else if (isAdmin()) {
         navigate('/admin', { replace: true })
       } else {
         navigate('/member', { replace: true })
       }
     }
-  }, [currentUser, userProfile, loading, navigate, isAdmin])
+  }, [currentUser, userProfile, loading, navigate, isAdmin, searchParams])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target

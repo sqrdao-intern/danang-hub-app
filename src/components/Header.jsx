@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import Avatar from './Avatar'
 import './Header.css'
 
-const Header = ({ isAdmin = false }) => {
-  const { userProfile, logout, isAdmin: checkAdmin } = useAuth()
+const Header = ({ isAdmin = false, public: isPublic = false }) => {
+  const { currentUser, userProfile, logout, isAdmin: checkAdmin } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -13,14 +13,14 @@ const Header = ({ isAdmin = false }) => {
   const handleLogout = async () => {
     try {
       await logout()
-      navigate('/login')
+      navigate(isPublic ? '/' : '/login')
       setIsMobileMenuOpen(false)
     } catch (error) {
       console.error('Logout error:', error)
     }
   }
 
-  const basePath = isAdmin ? '/admin' : '/member'
+  const basePath = isPublic ? '/' : isAdmin ? '/admin' : '/member'
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -52,23 +52,6 @@ const Header = ({ isAdmin = false }) => {
     )
   }
 
-  const navLinks = isAdmin ? (
-    <>
-      <NavLink to="/admin">Dashboard</NavLink>
-      <NavLink to="/admin/members">Members</NavLink>
-      <NavLink to="/admin/amenities">Amenities</NavLink>
-      <NavLink to="/admin/bookings">Bookings</NavLink>
-      <NavLink to="/admin/events">Events</NavLink>
-    </>
-  ) : (
-    <>
-      <NavLink to="/member">Dashboard</NavLink>
-      <NavLink to="/member/bookings">My Bookings</NavLink>
-      <NavLink to="/member/events">Events</NavLink>
-      <NavLink to="/member/profile">Profile</NavLink>
-    </>
-  )
-
   return (
     <header className="header">
       <div className="header-container container">
@@ -79,24 +62,71 @@ const Header = ({ isAdmin = false }) => {
         
         <nav className="nav">
           <ul className="nav-list">
-            {navLinks}
+            {isPublic ? (
+              <>
+                <li><Link to="/" onClick={closeMobileMenu} className={location.pathname === '/' && !location.hash ? 'active' : ''}>Home</Link></li>
+                <li><a href="#amenities" onClick={closeMobileMenu} className={location.hash === '#amenities' ? 'active' : ''}>Amenities</a></li>
+                <li><a href="#events" onClick={closeMobileMenu} className={location.hash === '#events' ? 'active' : ''}>Events</a></li>
+              </>
+            ) : isAdmin ? (
+              <>
+                <NavLink to="/admin">Dashboard</NavLink>
+                <NavLink to="/admin/members">Members</NavLink>
+                <NavLink to="/admin/amenities">Amenities</NavLink>
+                <NavLink to="/admin/bookings">Bookings</NavLink>
+                <NavLink to="/admin/events">Events</NavLink>
+              </>
+            ) : (
+              <>
+                <NavLink to="/member">Dashboard</NavLink>
+                <NavLink to="/member/bookings">My Bookings</NavLink>
+                <NavLink to="/member/events">Events</NavLink>
+                <NavLink to="/member/profile">Profile</NavLink>
+              </>
+            )}
           </ul>
         </nav>
 
         <div className="header-user">
-          {userProfile && (
-            <div className="user-info">
-              <Avatar 
-                src={userProfile.photoURL} 
-                name={userProfile.displayName}
-                size="md"
-              />
-              <span className="user-name">{userProfile.displayName}</span>
-            </div>
+          {isPublic ? (
+            !currentUser ? (
+              <Link to="/login" className="btn btn-primary">
+                Log In
+              </Link>
+            ) : (
+              <>
+                {userProfile && (
+                  <div className="user-info">
+                    <Avatar 
+                      src={userProfile.photoURL} 
+                      name={userProfile.displayName}
+                      size="md"
+                    />
+                    <span className="user-name">{userProfile.displayName}</span>
+                  </div>
+                )}
+                <button className="btn btn-secondary" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            )
+          ) : (
+            <>
+              {userProfile && (
+                <div className="user-info">
+                  <Avatar 
+                    src={userProfile.photoURL} 
+                    name={userProfile.displayName}
+                    size="md"
+                  />
+                  <span className="user-name">{userProfile.displayName}</span>
+                </div>
+              )}
+              <button className="btn btn-secondary" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
           )}
-          <button className="btn btn-secondary" onClick={handleLogout}>
-            Logout
-          </button>
         </div>
 
         <button 
@@ -116,7 +146,7 @@ const Header = ({ isAdmin = false }) => {
       
       <nav className={`mobile-nav ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-header">
-          {userProfile && (
+          {!isPublic && userProfile && (
             <div className="mobile-user-info">
               <Avatar 
                 src={userProfile.photoURL} 
@@ -131,12 +161,32 @@ const Header = ({ isAdmin = false }) => {
           )}
         </div>
         <ul className="mobile-nav-list">
-          {navLinks}
+          {isPublic ? (
+            <>
+              <li><Link to="/" onClick={closeMobileMenu} className={location.pathname === '/' ? 'active' : ''}>Home</Link></li>
+              <li><a href="#amenities" onClick={closeMobileMenu} className={location.hash === '#amenities' ? 'active' : ''}>Amenities</a></li>
+              <li><a href="#events" onClick={closeMobileMenu} className={location.hash === '#events' ? 'active' : ''}>Events</a></li>
+            </>
+          ) : (
+            navLinks
+          )}
         </ul>
         <div className="mobile-nav-footer">
-          <button className="btn btn-secondary btn-full-width" onClick={handleLogout}>
-            Logout
-          </button>
+          {isPublic ? (
+            !currentUser ? (
+              <Link to="/login" className="btn btn-primary btn-full-width" onClick={closeMobileMenu}>
+                Log In
+              </Link>
+            ) : (
+              <button className="btn btn-secondary btn-full-width" onClick={handleLogout}>
+                Logout
+              </button>
+            )
+          ) : (
+            <button className="btn btn-secondary btn-full-width" onClick={handleLogout}>
+              Logout
+            </button>
+          )}
         </div>
       </nav>
     </header>
