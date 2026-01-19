@@ -81,9 +81,12 @@ const Home = () => {
     if (!currentUser) {
       setSelectedEvent(event)
       setAuthPromptOpen(true)
-    } else {
-      navigate(`/member/events?action=register&eventId=${event.id}`)
+      return
     }
+    
+    // For logged-in users, navigate to member events page
+    // The MemberEvents page will handle the registration via query params
+    navigate(`/member/events?action=register&eventId=${event.id}`)
   }
 
   const availableAmenities = amenities.filter(a => a.isAvailable !== false)
@@ -107,7 +110,7 @@ const Home = () => {
     <Layout public>
       <div className="home-container">
         {/* Hero Section */}
-        <section className="hero-section">
+        <section id="hero" className="hero-section">
           <div className="hero-content">
             <h1 className="hero-title">
               Welcome to <span className="gradient-text">Danang Blockchain Hub</span>

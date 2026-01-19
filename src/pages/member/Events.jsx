@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -27,6 +27,7 @@ const MemberEvents = () => {
   const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [linkAmenity, setLinkAmenity] = useState(false)
+  const processedActionRef = useRef(null)
 
   // Fetch upcoming events (approved and pending)
   const { data: upcomingEventsData = [], isLoading: isLoadingEvents, error: eventsError } = useQuery({
@@ -102,10 +103,27 @@ const MemberEvents = () => {
     mutationFn: ({ eventId, memberId }) => registerForEvent(eventId, memberId),
     onSuccess: () => {
       queryClient.invalidateQueries(['approvedEvents'])
+      queryClient.invalidateQueries(['upcomingEvents'])
+      queryClient.invalidateQueries(['myEvents'])
       showToast('Successfully registered for event!', 'success')
+      
+      // Reset ref and clean up query params after successful registration
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Registration error:', error)
       showToast('Failed to register. Please try again.', 'error')
+      
+      // Reset ref and clean up query params even on error
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     }
   })
 
@@ -113,10 +131,24 @@ const MemberEvents = () => {
     mutationFn: ({ eventId, memberId }) => unregisterFromEvent(eventId, memberId),
     onSuccess: () => {
       queryClient.invalidateQueries(['approvedEvents'])
+      queryClient.invalidateQueries(['upcomingEvents'])
+      queryClient.invalidateQueries(['myEvents'])
       showToast('Successfully unregistered from event.', 'success')
+      
+      // Reset ref and clean up query params
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     },
     onError: () => {
       showToast('Failed to unregister. Please try again.', 'error')
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     }
   })
 
@@ -124,10 +156,23 @@ const MemberEvents = () => {
     mutationFn: ({ eventId, memberId }) => addToWaitlist(eventId, memberId),
     onSuccess: () => {
       queryClient.invalidateQueries(['approvedEvents'])
+      queryClient.invalidateQueries(['upcomingEvents'])
       showToast('Added to waitlist! You will be notified if a spot becomes available.', 'info')
+      
+      // Reset ref and clean up query params
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     },
     onError: () => {
       showToast('Failed to join waitlist. Please try again.', 'error')
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     }
   })
 
@@ -135,10 +180,23 @@ const MemberEvents = () => {
     mutationFn: ({ eventId, memberId }) => removeFromWaitlist(eventId, memberId),
     onSuccess: () => {
       queryClient.invalidateQueries(['approvedEvents'])
+      queryClient.invalidateQueries(['upcomingEvents'])
       showToast('Removed from waitlist.', 'info')
+      
+      // Reset ref and clean up query params
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     },
     onError: () => {
       showToast('Failed to remove from waitlist. Please try again.', 'error')
+      processedActionRef.current = null
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     }
   })
 
@@ -221,36 +279,90 @@ const MemberEvents = () => {
     await removeWaitlistMutation.mutateAsync({ eventId, memberId: currentUser.uid })
   }
 
-  // Handle redirect actions from public Events page
+  // Handle redirect actions from public Events page or Home page
   useEffect(() => {
     const action = searchParams.get('action')
     const eventId = searchParams.get('eventId')
+    const actionKey = `${action}-${eventId}`
     
-    if (action && eventId && currentUser) {
-      const event = upcomingEventsData.find(e => e.id === eventId) || approvedEvents.find(e => e.id === eventId)
-      
-      if (event) {
-        if (action === 'register') {
-          registerMutation.mutate({ eventId, memberId: currentUser.uid })
-        } else if (action === 'unregister') {
-          if (window.confirm('Are you sure you want to unregister from this event?')) {
-            unregisterMutation.mutate({ eventId, memberId: currentUser.uid })
-          }
-        } else if (action === 'joinWaitlist') {
-          waitlistMutation.mutate({ eventId, memberId: currentUser.uid })
-        } else if (action === 'leaveWaitlist') {
-          removeWaitlistMutation.mutate({ eventId, memberId: currentUser.uid })
-        }
-        
-        // Remove query params after handling
+    // Skip if no action/eventId or no user
+    if (!action || !eventId || !currentUser) {
+      processedActionRef.current = null
+      return
+    }
+    
+    // Prevent duplicate processing of the same action
+    if (processedActionRef.current === actionKey) {
+      return
+    }
+    
+    // Wait for data to be loaded - don't proceed if still loading
+    if (isLoadingEvents) return
+    
+    // Try to find event in loaded data
+    const event = upcomingEventsData.find(e => e.id === eventId) || approvedEvents.find(e => e.id === eventId)
+    
+    // If event not found and we have data loaded, event doesn't exist
+    if (!event && (upcomingEventsData.length > 0 || approvedEvents.length > 0)) {
+      processedActionRef.current = actionKey
+      showToast('Event not found', 'error')
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
+      return
+    }
+    
+    // If event not found yet, wait for more data
+    if (!event) return
+    
+    // Mark as processed to prevent duplicate calls
+    processedActionRef.current = actionKey
+    
+    // Process the action
+    if (action === 'register') {
+      // Only register if not already registered
+      if (!event.attendees?.includes(currentUser.uid)) {
+        registerMutation.mutate({ eventId, memberId: currentUser.uid })
+      } else {
+        showToast('You are already registered for this event', 'info')
         const newParams = new URLSearchParams(searchParams)
         newParams.delete('action')
         newParams.delete('eventId')
         setSearchParams(newParams, { replace: true })
       }
+    } else if (action === 'unregister') {
+      if (window.confirm('Are you sure you want to unregister from this event?')) {
+        unregisterMutation.mutate({ eventId, memberId: currentUser.uid })
+      } else {
+        // User cancelled, reset ref and remove params
+        processedActionRef.current = null
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('action')
+        newParams.delete('eventId')
+        setSearchParams(newParams, { replace: true })
+      }
+    } else if (action === 'joinWaitlist') {
+      if (!event.waitlist?.includes(currentUser.uid)) {
+        waitlistMutation.mutate({ eventId, memberId: currentUser.uid })
+      } else {
+        showToast('You are already on the waitlist for this event', 'info')
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('action')
+        newParams.delete('eventId')
+        setSearchParams(newParams, { replace: true })
+      }
+    } else if (action === 'leaveWaitlist') {
+      removeWaitlistMutation.mutate({ eventId, memberId: currentUser.uid })
+    } else {
+      // Unknown action, remove params
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('eventId')
+      setSearchParams(newParams, { replace: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, currentUser, upcomingEventsData, approvedEvents, setSearchParams])
+  }, [searchParams.toString(), currentUser?.uid, isLoadingEvents, upcomingEventsData.length, approvedEvents.length])
 
   const getStatusBadge = (status) => {
     const statusClasses = {
