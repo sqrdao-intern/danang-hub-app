@@ -4,22 +4,93 @@ A full-stack Firebase-powered React application for managing members, amenities,
 
 ## Features
 
-- **Authentication**: Google and social login via Firebase Auth
-- **Member Management**: Profile management and member directory
-- **Amenity Booking**: Calendar-based booking system with 30-min slots, conflict detection, and recurring bookings
-- **Event Management**: Create events with approval workflow, waitlist system, and capacity management
-- **Admin Dashboard**: Comprehensive admin interface for managing all aspects of the hub
-- **Member Portal**: Self-service portal for members to book amenities and register for events
-- **AI Integration**: Gemini AI for smart booking suggestions and chatbot support
-- **Cloud Functions**: Automated tasks for conflict checking, notifications, and cleanup
+### 🔐 Authentication & User Management
+- **Firebase Authentication**: Google OAuth login and social authentication
+- **Role-Based Access**: Admin and member roles with protected routes
+- **User Profiles**: Member profile management with avatar support
+- **Member Directory**: View and manage all hub members (admin)
+
+### 📅 Amenity Booking System
+- **Visual Calendar Interface**: Day and week view calendar for booking selection
+- **Flexible Time Slots**: 30-minute slot duration (configurable per amenity)
+- **Conflict Detection**: Real-time booking conflict checking via Cloud Functions
+- **Recurring Bookings**: Support for weekly recurring reservations
+- **Check-in/Check-out**: Manual and automatic checkout system
+- **Custom Availability**: Per-amenity availability settings (hours, days, slot duration)
+- **Booking Status**: Pending, approved, checked-in, completed status workflow
+- **Booking History**: View past and upcoming bookings
+
+### 🎉 Event Management
+- **Event Creation**: Create events with details, capacity, and hosting projects
+- **Approval Workflow**: Admin approval system for event submissions
+- **Waitlist System**: Automatic waitlist management when events reach capacity
+- **Auto-Promotion**: Automatic promotion from waitlist when spots open
+- **Event Registration**: Members can register for upcoming events
+- **Capacity Management**: Real-time tracking of event attendance
+- **Event History**: View past events and attendance records
+
+### 🤖 AI-Powered Features
+- **AI Chatbot**: Gemini AI-powered assistant for booking help and general questions
+- **Smart Booking Suggestions**: AI-generated recommendations for optimal booking times and amenities
+- **Conversational Interface**: Context-aware chatbot with conversation history
+
+### 📊 Admin Dashboard
+- **Overview Statistics**: Total members, active bookings, upcoming events, available amenities
+- **Member Management**: View, edit, and manage member profiles and membership types
+- **Amenity Management**: Create, edit, and configure amenities with custom availability
+- **Booking Management**: View all bookings, approve/reject, and manage check-ins
+- **Event Management**: Create, approve, and manage events with capacity control
+
+### 👤 Member Portal
+- **Personal Dashboard**: Overview of upcoming bookings and events
+- **Booking Interface**: Easy-to-use calendar for booking amenities
+- **Event Registration**: Browse and register for upcoming events
+- **Profile Management**: Edit personal information and view membership details
+- **Booking History**: View all past and current bookings
+
+### 📆 Unified Calendar View
+- **Combined View**: See both bookings and events in a single calendar
+- **Filter Options**: Filter by bookings, events, or amenity type
+- **Visual Indicators**: Color-coded items showing your bookings vs. others
+- **Month View**: Full month calendar with day-by-day breakdown
+
+### 🏠 Public Homepage
+- **Amenity Preview**: Browse available amenities without logging in
+- **Event Showcase**: View upcoming and past events
+- **Project Integration**: Display hosting projects for events
+- **Call-to-Action**: Seamless sign-up flow for new members
+
+### ⚙️ Cloud Functions & Automation
+- **Conflict Checking**: Server-side validation to prevent double-bookings
+- **Auto Checkout**: Automatic checkout of expired bookings (hourly)
+- **Booking Confirmations**: Automated notifications on booking creation
+- **Event Reminders**: Scheduled reminders for upcoming events (hourly)
+- **Waitlist Promotion**: Automatic promotion from waitlist when capacity opens
+- **Data Cleanup**: Daily cleanup of old completed bookings
+
+### 🎨 User Experience
+- **Responsive Design**: Mobile-friendly interface with modern UI
+- **Loading States**: Skeleton loaders for better perceived performance
+- **Toast Notifications**: User-friendly feedback for actions
+- **Modal Dialogs**: Smooth booking and event registration flows
+- **Error Handling**: Graceful error handling with user-friendly messages
 
 ## Tech Stack
 
-- **Frontend**: React 18 + Vite
-- **Backend**: Firebase (Auth, Firestore, Cloud Functions)
-- **Styling**: Custom CSS matching landing page design
-- **State Management**: React Query for data fetching
-- **Routing**: React Router v6
+- **Frontend Framework**: React 18 with Vite
+- **Routing**: React Router v6 with protected routes
+- **State Management**: 
+  - React Context API for authentication
+  - TanStack React Query for server state and data fetching
+- **Backend Services**: 
+  - Firebase Authentication (Google OAuth)
+  - Cloud Firestore (NoSQL database)
+  - Cloud Functions (Node.js serverless functions)
+  - Firebase Storage (for file uploads)
+- **AI Integration**: Google Gemini API (gemini-2.5-flash model)
+- **Styling**: Custom CSS with CSS variables, glassmorphism design
+- **Date Handling**: date-fns for date manipulation
+- **Build Tool**: Vite for fast development and optimized production builds
 
 ---
 
@@ -128,12 +199,13 @@ firebase deploy --only functions
 
 | Function | Type | Description |
 |----------|------|-------------|
-| `checkBookingConflicts` | Callable | Prevents double-booking |
-| `autoCheckoutExpiredBookings` | Scheduled (hourly) | Auto checks out expired bookings |
-| `sendBookingConfirmation` | Trigger | Notification on booking created |
-| `sendEventReminders` | Scheduled (hourly) | Reminders for upcoming events |
-| `promoteWaitlistedToAttendee` | Trigger | Auto-promotes from waitlist |
-| `cleanupOldBookings` | Scheduled (daily) | Cleans up old booking data |
+| `checkBookingConflicts` | Callable | Server-side validation to prevent double-booking conflicts |
+| `autoCheckoutExpiredBookings` | Scheduled (hourly) | Automatically checks out bookings that have passed their end time |
+| `sendBookingConfirmation` | Firestore Trigger (onCreate) | Sends confirmation notification when a booking is created |
+| `updateEventCapacity` | Firestore Trigger (onUpdate) | Monitors event capacity and logs when events are full |
+| `sendEventReminders` | Scheduled (hourly) | Sends reminders for events happening in the next 24 hours |
+| `autoPromoteWaitlist` | Firestore Trigger (onUpdate) | Automatically promotes members from waitlist when spots become available |
+| `cleanupOldBookings` | Scheduled (daily) | Identifies and logs old completed bookings for cleanup (30+ days old) |
 
 ### Deploy Functions
 
@@ -205,40 +277,76 @@ firebase functions:delete --all
 
 ```
 src/
-├── components/      # Shared UI components
-│   ├── BookingCalendar.jsx   # Visual calendar for bookings
-│   ├── UnifiedCalendar.jsx   # Combined events/bookings view
-│   ├── Toast.jsx             # Notification system
-│   └── ...
+├── components/              # Shared UI components
+│   ├── AuthPrompt.jsx      # Authentication prompt modal
+│   ├── Avatar.jsx          # User avatar component
+│   ├── BookingCalendar.jsx # Visual calendar for booking selection (day/week view)
+│   ├── Chatbot.jsx         # AI chatbot interface
+│   ├── Footer.jsx          # Site footer
+│   ├── Header.jsx          # Navigation header
+│   ├── Layout.jsx          # Main layout wrapper
+│   ├── LoadingSkeleton.jsx # Loading state components
+│   ├── Modal.jsx           # Reusable modal component
+│   ├── ProtectedRoute.jsx  # Route protection wrapper
+│   ├── SmartBookingSuggestions.jsx # AI booking suggestions
+│   ├── Toast.jsx           # Toast notification system
+│   └── UnifiedCalendar.jsx # Combined bookings/events calendar view
 ├── pages/
-│   ├── admin/       # Admin dashboard pages
-│   ├── member/      # Member portal pages
-│   └── auth/        # Authentication pages
-├── services/        # Firebase service layers
-├── contexts/        # React contexts (Auth, etc.)
-└── styles/          # Global styles
+│   ├── admin/              # Admin dashboard pages
+│   │   ├── Dashboard.jsx   # Admin overview with statistics
+│   │   ├── Members.jsx     # Member management
+│   │   ├── Amenities.jsx   # Amenity management
+│   │   ├── Bookings.jsx    # Booking management
+│   │   └── Events.jsx     # Event management
+│   ├── member/             # Member portal pages
+│   │   ├── Dashboard.jsx  # Member overview
+│   │   ├── Bookings.jsx    # Booking interface with calendar
+│   │   ├── Events.jsx     # Event browsing and registration
+│   │   └── Profile.jsx    # Profile management
+│   ├── auth/               # Authentication pages
+│   │   └── Login.jsx       # Login/signup page
+│   ├── Home.jsx            # Public homepage
+│   ├── Amenities.jsx       # Public amenities page
+│   └── Events.jsx          # Public events page
+├── services/               # Firebase service layers
+│   ├── amenities.js        # Amenity CRUD operations
+│   ├── bookings.js         # Booking CRUD and conflict checking
+│   ├── events.js           # Event CRUD operations
+│   ├── firebase.js         # Firebase initialization
+│   ├── functions.js        # Cloud Functions client calls
+│   ├── gemini.js           # Gemini AI integration
+│   ├── members.js          # Member management
+│   ├── projects.js         # Project management
+│   └── storage.js          # File storage operations
+├── contexts/               # React contexts
+│   └── AuthContext.jsx     # Authentication state management
+├── styles/                 # Global styles
+│   └── globals.css         # Global CSS variables and styles
+├── App.jsx                 # Main app component with routing
+└── main.jsx               # Application entry point
 
 functions/
-└── index.js         # Cloud Functions
+└── index.js                # Cloud Functions definitions
 ```
 
 ## Firebase Collections
 
 | Collection | Description |
 |------------|-------------|
-| `members` | User profiles and membership info |
-| `amenities` | Available resources with availability settings |
-| `bookings` | Check-in/out records and reservations |
-| `events` | Events with approval status, attendees, and waitlist |
+| `members` | User profiles, membership types (admin/member), and personal information |
+| `amenities` | Available resources (desks, meeting rooms, podcast rooms) with custom availability settings |
+| `bookings` | Booking records with status (pending/approved/checked-in/completed), time slots, and member associations |
+| `events` | Events with approval status, capacity, attendees, waitlist, and hosting projects |
+| `projects` | Project information for event hosting associations |
 
 ## Amenity Availability
 
-Default settings for all amenities:
-- **Hours**: 8:00 AM - 6:00 PM (Vietnam time)
-- **Days**: Monday to Friday
-- **Slot Duration**: 30 minutes
+Each amenity can have custom availability settings configured by admins. Default settings (if not customized):
+- **Hours**: 8:00 AM - 6:00 PM (configurable start/end hours)
+- **Days**: Monday to Friday (configurable available days of week)
+- **Slot Duration**: 30 minutes (configurable per amenity)
 
-Admins can customize per amenity in `/admin/amenities`.
+Admins can customize these settings per amenity in the `/admin/amenities` page. The booking calendar automatically adapts to each amenity's availability settings.
 
 ---
 
