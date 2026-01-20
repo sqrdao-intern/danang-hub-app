@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
 import BookingCalendar from '../../components/BookingCalendar'
-import SmartBookingSuggestions from '../../components/SmartBookingSuggestions'
 import { CardSkeleton } from '../../components/LoadingSkeleton'
 import { getBookings, createBooking, updateBooking, deleteBooking, createRecurringBooking } from '../../services/bookings'
 import { getAmenities } from '../../services/amenities'
@@ -33,35 +32,6 @@ const MemberBookings = () => {
   const [conflictError, setConflictError] = useState(null)
   const [alternativeSlots, setAlternativeSlots] = useState([])
   const queryClient = useQueryClient()
-
-  const handleSuggestionSelect = (suggestionData) => {
-    const { amenity, timeSlot } = suggestionData
-    setSelectedAmenity(amenity)
-    setIsModalOpen(true)
-    setBookingStep(1)
-    
-    // Try to parse time slot if provided
-    if (timeSlot) {
-      const timeMatch = timeSlot.match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
-      if (timeMatch) {
-        const today = new Date()
-        const startHour = parseInt(timeMatch[1])
-        const startMin = parseInt(timeMatch[2])
-        const endHour = parseInt(timeMatch[3])
-        const endMin = parseInt(timeMatch[4])
-        
-        const startTime = new Date(today)
-        startTime.setHours(startHour, startMin, 0, 0)
-        
-        const endTime = new Date(today)
-        endTime.setHours(endHour, endMin, 0, 0)
-        
-        setSelectedStartTime(startTime)
-        setSelectedEndTime(endTime)
-        setSelectedDate(today)
-      }
-    }
-  }
 
   const { data: myBookings = [] } = useQuery({
     queryKey: ['bookings', currentUser?.uid],
@@ -358,8 +328,6 @@ const MemberBookings = () => {
             <p className="empty-state">No amenities available. Please contact admin.</p>
           )}
         </div>
-
-        <SmartBookingSuggestions onSelectSuggestion={handleSuggestionSelect} amenities={amenities} />
 
         <div className="bookings-section glass">
           <div className="section-header">

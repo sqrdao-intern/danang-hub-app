@@ -31,7 +31,6 @@ A full-stack Firebase-powered React application for managing members, amenities,
 
 ### 🤖 AI-Powered Features
 - **AI Chatbot**: Gemini AI-powered assistant for booking help and general questions
-- **Smart Booking Suggestions**: AI-generated recommendations for optimal booking times and amenities
 - **Conversational Interface**: Context-aware chatbot with conversation history
 
 ### 📊 Admin Dashboard
@@ -288,7 +287,6 @@ src/
 │   ├── LoadingSkeleton.jsx # Loading state components
 │   ├── Modal.jsx           # Reusable modal component
 │   ├── ProtectedRoute.jsx  # Route protection wrapper
-│   ├── SmartBookingSuggestions.jsx # AI booking suggestions
 │   ├── Toast.jsx           # Toast notification system
 │   └── UnifiedCalendar.jsx # Combined bookings/events calendar view
 ├── pages/
@@ -410,7 +408,7 @@ firebase use your-project-id
 
 ## Optional: Gemini AI Setup
 
-For AI features (chatbot and smart booking suggestions):
+For AI chatbot feature:
 
 1. Get API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Add to `.env`:
@@ -418,7 +416,7 @@ For AI features (chatbot and smart booking suggestions):
 VITE_GEMINI_API_KEY=your-api-key-here
 ```
 
-The app works without Gemini, but AI features will be disabled.
+The app works without Gemini, but the AI chatbot will be disabled.
 
 ---
 
