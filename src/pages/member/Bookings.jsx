@@ -323,6 +323,18 @@ const MemberBookings = () => {
             <div className="amenities-grid">
               {availableAmenities.map(amenity => (
               <div key={amenity.id} className="amenity-card">
+                {amenity.photos && amenity.photos.length > 0 ? (
+                  <div className="amenity-photo-preview">
+                    <img src={amenity.photos[0]} alt={amenity.name} />
+                    {amenity.photos.length > 1 && (
+                      <span className="amenity-photo-count-badge">{amenity.photos.length}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="amenity-photo-placeholder">
+                    <span>No photo</span>
+                  </div>
+                )}
                 <div className="amenity-header">
                   <h3 className="amenity-name">{amenity.name}</h3>
                   <span className="amenity-type">{amenity.type}</span>
