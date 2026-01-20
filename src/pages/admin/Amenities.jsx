@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
 import { getAmenities, createAmenity, updateAmenity, deleteAmenity, DEFAULT_AVAILABILITY } from '../../services/amenities'
+import { uploadAmenityPhoto, deleteAmenityPhoto } from '../../services/storage'
 import { showToast } from '../../components/Toast'
 import './Amenities.css'
 
@@ -21,6 +22,11 @@ const AdminAmenities = () => {
   const [isCreateMode, setIsCreateMode] = useState(true)
   const [selectedAmenity, setSelectedAmenity] = useState(null)
   const [availableDays, setAvailableDays] = useState(DEFAULT_AVAILABILITY.availableDays)
+  const [photos, setPhotos] = useState([])
+  const [pendingFiles, setPendingFiles] = useState([]) // Files waiting to be uploaded (create mode)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState({})
+  const fileInputRef = useRef(null)
   const queryClient = useQueryClient()
 
   const { data: amenities = [], isLoading } = useQuery({
@@ -29,7 +35,47 @@ const AdminAmenities = () => {
   })
 
   const createMutation = useMutation({
-    mutationFn: createAmenity,
+    mutationFn: async (data) => {
+      // First create the amenity to get the ID
+      const amenityId = await createAmenity(data)
+      
+      // Then upload pending photos if any
+      // In create mode, photos array contains only preview URLs (blob: URLs)
+      // and pendingFiles contains the corresponding File objects in the same order
+      if (pendingFiles.length > 0) {
+        setUploadingPhotos(true)
+        const uploadedPhotos = []
+        try {
+          // Upload all pending files
+          for (let i = 0; i < pendingFiles.length; i++) {
+            const file = pendingFiles[i]
+            const downloadURL = await uploadAmenityPhoto(amenityId, file)
+            uploadedPhotos.push(downloadURL)
+            
+            // Revoke the corresponding preview URL
+            // In create mode, photos array should only contain preview URLs
+            // and they should be in the same order as pendingFiles
+            if (i < photos.length) {
+              const previewUrl = photos[i]
+              if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl)
+              }
+            }
+          }
+          
+          // Update the amenity with photo URLs
+          if (uploadedPhotos.length > 0) {
+            await updateAmenity(amenityId, { photos: uploadedPhotos })
+          }
+        } catch (error) {
+          showToast(`Amenity created but some photos failed to upload: ${error.message}`, 'error')
+        } finally {
+          setUploadingPhotos(false)
+        }
+      }
+      
+      return amenityId
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['amenities'])
       setIsModalOpen(false)
@@ -74,12 +120,23 @@ const AdminAmenities = () => {
     setSelectedAmenity(null)
     setIsCreateMode(true)
     setAvailableDays(DEFAULT_AVAILABILITY.availableDays)
+    setPhotos([])
+    setPendingFiles([])
+    setUploadingPhotos(false)
+    setUploadProgress({})
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const handleCreate = () => {
     setIsCreateMode(true)
     setSelectedAmenity(null)
     setAvailableDays(DEFAULT_AVAILABILITY.availableDays)
+    setPhotos([])
+    setPendingFiles([])
+    setUploadingPhotos(false)
+    setUploadProgress({})
     setIsModalOpen(true)
   }
 
@@ -87,6 +144,10 @@ const AdminAmenities = () => {
     setIsCreateMode(false)
     setSelectedAmenity(amenity)
     setAvailableDays(amenity.availableDays || DEFAULT_AVAILABILITY.availableDays)
+    setPhotos(amenity.photos || [])
+    setPendingFiles([])
+    setUploadingPhotos(false)
+    setUploadProgress({})
     setIsModalOpen(true)
   }
 
@@ -108,8 +169,109 @@ const AdminAmenities = () => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    // In create mode, store files temporarily. In edit mode, upload immediately
+    if (isCreateMode) {
+      setPendingFiles(prev => [...prev, ...files])
+      // Create preview URLs for immediate display
+      const previewUrls = files.map(file => URL.createObjectURL(file))
+      setPhotos(prev => [...prev, ...previewUrls])
+    } else {
+      // Edit mode: upload immediately since we have the amenity ID
+      setUploadingPhotos(true)
+      const newPhotos = [...photos]
+      const newProgress = { ...uploadProgress }
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i]
+          const fileId = `${Date.now()}-${i}`
+          newProgress[fileId] = 0
+
+          try {
+            const downloadURL = await uploadAmenityPhoto(selectedAmenity.id, file, (progress) => {
+              setUploadProgress(prev => ({ ...prev, [fileId]: progress }))
+            })
+            newPhotos.push(downloadURL)
+            delete newProgress[fileId]
+          } catch (error) {
+            showToast(`Failed to upload ${file.name}: ${error.message}`, 'error')
+            delete newProgress[fileId]
+          }
+        }
+
+        setPhotos(newPhotos)
+        setUploadProgress(newProgress)
+      } catch (error) {
+        showToast('Error uploading photos', 'error')
+      } finally {
+        setUploadingPhotos(false)
+      }
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handlePhotoDelete = async (photoUrl, index) => {
+    if (!window.confirm('Are you sure you want to delete this photo?')) {
+      return
+    }
+
+    try {
+      if (isCreateMode) {
+        // In create mode, check if this is a preview URL (starts with blob:)
+        const isPreview = photoUrl.startsWith('blob:')
+        
+        if (isPreview) {
+          // Revoke the object URL
+          URL.revokeObjectURL(photoUrl)
+          // Remove from both photos and pendingFiles arrays
+          const newPhotos = photos.filter((_, i) => i !== index)
+          setPhotos(newPhotos)
+          
+          // Find the corresponding file index (photos array includes existing + new previews)
+          // We need to figure out which pending file corresponds to this preview
+          const existingPhotoCount = photos.length - pendingFiles.length
+          const pendingFileIndex = index - existingPhotoCount
+          
+          if (pendingFileIndex >= 0 && pendingFileIndex < pendingFiles.length) {
+            const newPendingFiles = pendingFiles.filter((_, i) => i !== pendingFileIndex)
+            setPendingFiles(newPendingFiles)
+          }
+        } else {
+          // It's an existing photo URL, just remove from display
+          const newPhotos = photos.filter((_, i) => i !== index)
+          setPhotos(newPhotos)
+        }
+      } else {
+        // In edit mode, delete from storage and remove from state
+        const newPhotos = photos.filter((_, i) => i !== index)
+        setPhotos(newPhotos)
+        
+        if (selectedAmenity?.id) {
+          await deleteAmenityPhoto(photoUrl)
+        }
+      }
+    } catch (error) {
+      showToast('Failed to delete photo. Please try again.', 'error')
+      // Restore photo on error
+      setPhotos(photos)
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (uploadingPhotos) {
+      showToast('Please wait for photos to finish uploading', 'error')
+      return
+    }
+
     const formData = new FormData(e.target)
     const data = {
       name: formData.get('name'),
@@ -120,7 +282,8 @@ const AdminAmenities = () => {
       startHour: parseInt(formData.get('startHour')) || DEFAULT_AVAILABILITY.startHour,
       endHour: parseInt(formData.get('endHour')) || DEFAULT_AVAILABILITY.endHour,
       slotDuration: parseInt(formData.get('slotDuration')) || DEFAULT_AVAILABILITY.slotDuration,
-      availableDays: availableDays
+      availableDays: availableDays,
+      photos: isCreateMode ? [] : photos // In create mode, photos will be uploaded after creation
     }
 
     if (isCreateMode) {
@@ -160,6 +323,14 @@ const AdminAmenities = () => {
         <div className="amenities-grid">
           {amenities.map(amenity => (
             <div key={amenity.id} className="amenity-card glass">
+              {amenity.photos && amenity.photos.length > 0 && (
+                <div className="amenity-photo-preview">
+                  <img src={amenity.photos[0]} alt={amenity.name} />
+                  {amenity.photos.length > 1 && (
+                    <span className="photo-count-badge">{amenity.photos.length} photos</span>
+                  )}
+                </div>
+              )}
               <div className="amenity-header">
                 <h3 className="amenity-name">{amenity.name}</h3>
                 <span className={`availability-badge ${amenity.isAvailable !== false ? 'available' : 'unavailable'}`}>
@@ -253,6 +424,53 @@ const AdminAmenities = () => {
                 defaultValue={selectedAmenity?.description || ''}
                 rows="3"
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Photos</label>
+              <div className="photo-upload-section">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="photo-input"
+                  disabled={uploadingPhotos}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-upload"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhotos}
+                >
+                  {uploadingPhotos ? 'Uploading...' : '+ Upload Photos'}
+                </button>
+                {uploadingPhotos && Object.keys(uploadProgress).length > 0 && (
+                  <div className="upload-progress">
+                    Uploading photos...
+                  </div>
+                )}
+              </div>
+              
+              {photos.length > 0 && (
+                <div className="photo-preview-grid">
+                  {photos.map((photoUrl, index) => (
+                    <div key={index} className="photo-preview-item">
+                      <img src={photoUrl} alt={`Amenity ${index + 1}`} />
+                      <button
+                        type="button"
+                        className="photo-delete-btn"
+                        onClick={() => handlePhotoDelete(photoUrl, index)}
+                        disabled={uploadingPhotos}
+                        title="Delete photo"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="form-section">

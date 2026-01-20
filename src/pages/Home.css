@@ -126,7 +126,7 @@
 
 .amenity-preview-card,
 .event-preview-card {
-  padding: var(--spacing-lg);
+  padding: 0;
   border-radius: var(--radius-lg);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -141,6 +141,15 @@
   transform: translateZ(0);
   isolation: isolate;
   contain: layout style paint;
+  overflow: hidden;
+}
+
+.amenity-preview-card > div:last-of-type {
+  padding: var(--spacing-lg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .amenity-preview-card .btn,
@@ -168,6 +177,47 @@
   border-color: rgba(124, 58, 237, 0.3);
   z-index: 10;
   will-change: transform;
+}
+
+/* Amenity Photo on Home Page */
+.amenity-preview-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.amenity-preview-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.amenity-photo-count-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.amenity-preview-photo-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .amenity-preview-name,

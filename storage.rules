@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.membershipType == 'admin';
+    }
+    
+    // Helper function to validate image file type
+    function isImageFile() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Helper function to validate file size (5MB max)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Amenity photos
+    match /amenities/{amenityId}/{allPaths=**} {
+      // Public read access for amenity photos
+      allow read: if true;
+      
+      // Only admins can upload amenity photos
+      allow write: if isAdmin() && 
+                     isImageFile() && 
+                     isValidSize();
+      
+      // Only admins can delete amenity photos
+      allow delete: if isAdmin();
+    }
+    
+    // Deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

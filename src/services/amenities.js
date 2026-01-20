@@ -49,6 +49,7 @@ export const createAmenity = async (data) => {
     endHour: data.endHour || DEFAULT_AVAILABILITY.endHour,
     availableDays: data.availableDays || DEFAULT_AVAILABILITY.availableDays,
     slotDuration: data.slotDuration || DEFAULT_AVAILABILITY.slotDuration,
+    photos: data.photos || [], // Initialize photos array
     createdAt: new Date().toISOString()
   })
   return docRef.id
@@ -56,10 +57,18 @@ export const createAmenity = async (data) => {
 
 export const updateAmenity = async (id, data) => {
   const amenityRef = doc(db, AMENITIES_COLLECTION, id)
-  await updateDoc(amenityRef, {
+  const updateData = {
     ...data,
     updatedAt: new Date().toISOString()
-  })
+  }
+  // Preserve photos array if not provided in update
+  if (!('photos' in data)) {
+    const currentDoc = await getDoc(amenityRef)
+    if (currentDoc.exists()) {
+      updateData.photos = currentDoc.data().photos || []
+    }
+  }
+  await updateDoc(amenityRef, updateData)
 }
 
 export const deleteAmenity = async (id) => {

@@ -143,6 +143,18 @@ const Home = () => {
               <div className="amenities-preview-grid">
                 {availableAmenities.map(amenity => (
                   <div key={amenity.id} className="amenity-preview-card glass">
+                    {amenity.photos && amenity.photos.length > 0 ? (
+                      <div className="amenity-preview-photo">
+                        <img src={amenity.photos[0]} alt={amenity.name} />
+                        {amenity.photos.length > 1 && (
+                          <span className="amenity-photo-count-badge">{amenity.photos.length}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="amenity-preview-photo-placeholder">
+                        <span>No photo</span>
+                      </div>
+                    )}
                     <div>
                       <h4 className="amenity-preview-name">{amenity.name}</h4>
                       <p className="amenity-preview-type">{amenity.type}</p>

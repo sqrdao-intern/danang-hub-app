@@ -12,6 +12,7 @@ const Amenities = () => {
   const navigate = useNavigate()
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
   const [selectedAmenity, setSelectedAmenity] = useState(null)
+  const [expandedPhotoIndex, setExpandedPhotoIndex] = useState({})
 
   const { data: amenities = [], isLoading } = useQuery({
     queryKey: ['amenities'],
@@ -61,6 +62,62 @@ const Amenities = () => {
           <div className="amenities-grid">
             {availableAmenities.map(amenity => (
               <div key={amenity.id} className="amenity-card glass">
+                {amenity.photos && amenity.photos.length > 0 ? (
+                  <div className="amenity-photo-gallery">
+                    <div className="amenity-photo-main">
+                      <img 
+                        src={amenity.photos[expandedPhotoIndex[amenity.id] || 0]} 
+                        alt={amenity.name}
+                      />
+                      {amenity.photos.length > 1 && (
+                        <>
+                          <button
+                            className="photo-nav-btn photo-nav-prev"
+                            onClick={() => {
+                              const current = expandedPhotoIndex[amenity.id] || 0
+                              const prev = current === 0 ? amenity.photos.length - 1 : current - 1
+                              setExpandedPhotoIndex({ ...expandedPhotoIndex, [amenity.id]: prev })
+                            }}
+                            aria-label="Previous photo"
+                          >
+                            ‹
+                          </button>
+                          <button
+                            className="photo-nav-btn photo-nav-next"
+                            onClick={() => {
+                              const current = expandedPhotoIndex[amenity.id] || 0
+                              const next = (current + 1) % amenity.photos.length
+                              setExpandedPhotoIndex({ ...expandedPhotoIndex, [amenity.id]: next })
+                            }}
+                            aria-label="Next photo"
+                          >
+                            ›
+                          </button>
+                          <div className="photo-indicator">
+                            {(expandedPhotoIndex[amenity.id] || 0) + 1} / {amenity.photos.length}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {amenity.photos.length > 1 && (
+                      <div className="amenity-photo-thumbnails">
+                        {amenity.photos.map((photo, index) => (
+                          <button
+                            key={index}
+                            className={`photo-thumbnail ${(expandedPhotoIndex[amenity.id] || 0) === index ? 'active' : ''}`}
+                            onClick={() => setExpandedPhotoIndex({ ...expandedPhotoIndex, [amenity.id]: index })}
+                          >
+                            <img src={photo} alt={`${amenity.name} ${index + 1}`} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="amenity-photo-placeholder">
+                    <span>No photo available</span>
+                  </div>
+                )}
                 <div className="amenity-header">
                   <h3 className="amenity-name">{amenity.name}</h3>
                   <span className="amenity-type">{amenity.type}</span>
