@@ -11,7 +11,7 @@ import { getProjects } from '../services/projects'
 import './Home.css'
 
 const Home = () => {
-  const { currentUser } = useAuth()
+  const { currentUser, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
   const [selectedAmenity, setSelectedAmenity] = useState(null)
@@ -118,7 +118,19 @@ const Home = () => {
             <p className="hero-subtitle">
               Your collaborative workspace for innovation, networking, and community events
             </p>
-            {!currentUser && (
+            {currentUser ? (
+              <div className="hero-cta">
+                <Link 
+                  to={isAdmin() ? '/admin' : '/member'} 
+                  className="btn btn-primary btn-large"
+                >
+                  Dashboard
+                </Link>
+                <a href="#amenities" className="btn btn-secondary btn-large">
+                  Browse Amenities
+                </a>
+              </div>
+            ) : (
               <div className="hero-cta">
                 <Link to="/login?signup=true" className="btn btn-primary btn-large">
                   Get Started
