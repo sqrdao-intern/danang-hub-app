@@ -29,6 +29,17 @@ export const getAmenity = async (id) => {
   return null
 }
 
+// Main event space (e.g. Main Hall) accommodates up to 80 people
+export const EVENT_SPACE_CAPACITY = 80
+
+// Default capacity by amenity type
+export const DEFAULT_CAPACITY_BY_TYPE = {
+  desk: 1,
+  'meeting-room': 10,
+  'podcast-room': 5,
+  'event-space': EVENT_SPACE_CAPACITY
+}
+
 // Default availability settings
 export const DEFAULT_AVAILABILITY = {
   isAvailable: true,
@@ -41,8 +52,10 @@ export const DEFAULT_AVAILABILITY = {
 
 export const createAmenity = async (data) => {
   const amenitiesRef = collection(db, AMENITIES_COLLECTION)
+  const defaultCapacity = DEFAULT_CAPACITY_BY_TYPE[data.type] ?? 1
   const docRef = await addDoc(amenitiesRef, {
     ...data,
+    capacity: data.capacity ?? defaultCapacity,
     // Apply default availability settings if not provided
     isAvailable: data.isAvailable !== undefined ? data.isAvailable : DEFAULT_AVAILABILITY.isAvailable,
     startHour: data.startHour || DEFAULT_AVAILABILITY.startHour,

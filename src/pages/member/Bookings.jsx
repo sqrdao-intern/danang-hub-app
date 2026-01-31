@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
@@ -15,11 +15,13 @@ import './Bookings.css'
 const DEFAULT_DURATION_HOURS = {
   'desk': 4,
   'meeting-room': 2,
-  'podcast-room': 3
+  'podcast-room': 3,
+  'event-space': 3
 }
 
 const MemberBookings = () => {
   const { currentUser } = useAuth()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAmenity, setSelectedAmenity] = useState(null)
@@ -129,6 +131,10 @@ const MemberBookings = () => {
   }, [duration, selectedStartTime])
 
   const handleBookAmenity = (amenity) => {
+    if (amenity.type === 'event-space') {
+      navigate(`/member/events?action=create&amenityId=${amenity.id}`)
+      return
+    }
     setSelectedAmenity(amenity)
     setDuration(DEFAULT_DURATION_HOURS[amenity.type] || 2)
     setSelectedDate(new Date())

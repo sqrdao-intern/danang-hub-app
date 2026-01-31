@@ -254,12 +254,14 @@ const Events = () => {
                     {event.duration && (
                       <p className="event-duration">⏱️ Duration: {event.duration} minutes</p>
                     )}
-                    {event.hostingProjects && event.hostingProjects.length > 0 && (
+                    {event.hostingProjects && (
                       <p className="event-projects">
-                        🏢 Hosted by: {event.hostingProjects.map(projectId => {
-                          const project = projects.find(p => p.id === projectId)
-                          return project?.name || projectId
-                        }).join(', ')}
+                        🏢 Hosted by: {typeof event.hostingProjects === 'string'
+                          ? event.hostingProjects
+                          : event.hostingProjects.map(projectId => {
+                            const project = projects.find(p => p.id === projectId)
+                            return project?.name || projectId
+                          }).join(', ')}
                       </p>
                     )}
                     {currentUser && event.attendees?.includes(currentUser.uid) && (

@@ -570,7 +570,7 @@ const AdminEvents = () => {
                 <label className="form-label">Amenity</label>
                 <select name="linkedAmenityId" className="form-field" defaultValue={selectedEvent?.linkedAmenityId || ''}>
                   <option value="">Select amenity</option>
-                  {amenities.filter(a => a.isAvailable !== false).map(amenity => (
+                  {amenities.filter(a => a.isAvailable !== false && a.type === 'event-space').map(amenity => (
                     <option key={amenity.id} value={amenity.id}>
                       {amenity.name}
                     </option>

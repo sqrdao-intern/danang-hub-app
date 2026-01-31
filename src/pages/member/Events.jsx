@@ -27,6 +27,7 @@ const MemberEvents = () => {
   const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [linkAmenity, setLinkAmenity] = useState(false)
+  const [prefillAmenityId, setPrefillAmenityId] = useState(null)
   const processedActionRef = useRef(null)
 
   // Fetch upcoming events (approved and pending)
@@ -279,14 +280,29 @@ const MemberEvents = () => {
     await removeWaitlistMutation.mutateAsync({ eventId, memberId: currentUser.uid })
   }
 
+  // Handle action=create with amenityId (from Event Hall Book Now)
+  useEffect(() => {
+    const action = searchParams.get('action')
+    const amenityId = searchParams.get('amenityId')
+    if (action === 'create' && amenityId && currentUser) {
+      setLinkAmenity(true)
+      setPrefillAmenityId(amenityId)
+      setIsModalOpen(true)
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('action')
+      newParams.delete('amenityId')
+      setSearchParams(newParams, { replace: true })
+    }
+  }, [searchParams, currentUser?.uid])
+
   // Handle redirect actions from public Events page or Home page
   useEffect(() => {
     const action = searchParams.get('action')
     const eventId = searchParams.get('eventId')
     const actionKey = `${action}-${eventId}`
     
-    // Skip if no action/eventId or no user
-    if (!action || !eventId || !currentUser) {
+    // Skip if no action/eventId or no user (or if action is 'create' - handled above)
+    if (!action || !eventId || !currentUser || action === 'create') {
       processedActionRef.current = null
       return
     }
@@ -612,12 +628,14 @@ const MemberEvents = () => {
                       {event.duration && (
                         <p className="event-duration">⏱️ Duration: {event.duration} minutes</p>
                       )}
-                      {event.hostingProjects && event.hostingProjects.length > 0 && (
+                      {event.hostingProjects && (
                         <p className="event-projects">
-                          🏢 Hosted by: {event.hostingProjects.map(projectId => {
-                            const project = projects.find(p => p.id === projectId)
-                            return project?.name || projectId
-                          }).join(', ')}
+                          🏢 Hosted by: {typeof event.hostingProjects === 'string'
+                            ? event.hostingProjects
+                            : event.hostingProjects.map(projectId => {
+                              const project = projects.find(p => p.id === projectId)
+                              return project?.name || projectId
+                            }).join(', ')}
                         </p>
                       )}
                       {registered && (
@@ -639,6 +657,7 @@ const MemberEvents = () => {
           onClose={() => {
             setIsModalOpen(false)
             setLinkAmenity(false)
+            setPrefillAmenityId(null)
           }}
           title="Create Event Request"
         >
@@ -717,16 +736,21 @@ const MemberEvents = () => {
                   checked={linkAmenity}
                   onChange={(e) => setLinkAmenity(e.target.checked)}
                 />
-                <span>Request amenity booking (e.g., meeting room)</span>
+                <span>Request Event Space (Main Hall) booking</span>
               </label>
             </div>
-            {linkAmenity && (
+            {linkAmenity && (() => {
+              const eventSpaceAmenities = amenities.filter(a => a.isAvailable !== false && a.type === 'event-space')
+              const defaultAmenity = prefillAmenityId
+                ? eventSpaceAmenities.find(a => a.id === prefillAmenityId)
+                : eventSpaceAmenities.find(a => /event hall|event space|main hall/i.test(a.name)) || eventSpaceAmenities[0]
+              return (
               <>
                 <div className="form-group">
                   <label className="form-label">Preferred Amenity</label>
-                  <select name="linkedAmenityId" className="form-field">
+                  <select name="linkedAmenityId" className="form-field" defaultValue={defaultAmenity?.id || ''}>
                     <option value="">Select amenity</option>
-                    {amenities.filter(a => a.isAvailable !== false).map(amenity => (
+                    {eventSpaceAmenities.map(amenity => (
                       <option key={amenity.id} value={amenity.id}>
                         {amenity.name} ({amenity.type})
                       </option>
@@ -743,7 +767,8 @@ const MemberEvents = () => {
                   />
                 </div>
               </>
-            )}
+              )
+            })()}
             <div className="form-actions">
               <button 
                 type="submit" 

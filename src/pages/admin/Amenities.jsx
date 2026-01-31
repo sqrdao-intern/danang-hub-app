@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
-import { getAmenities, createAmenity, updateAmenity, deleteAmenity, DEFAULT_AVAILABILITY } from '../../services/amenities'
+import { getAmenities, createAmenity, updateAmenity, deleteAmenity, DEFAULT_AVAILABILITY, DEFAULT_CAPACITY_BY_TYPE } from '../../services/amenities'
 import { uploadAmenityPhoto, deleteAmenityPhoto } from '../../services/storage'
 import { showToast } from '../../components/Toast'
 import './Amenities.css'
@@ -27,7 +27,16 @@ const AdminAmenities = () => {
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [uploadProgress, setUploadProgress] = useState({})
   const fileInputRef = useRef(null)
+  const capacityInputRef = useRef(null)
   const queryClient = useQueryClient()
+
+  const handleTypeChange = (e) => {
+    const type = e.target.value
+    const defaultCap = DEFAULT_CAPACITY_BY_TYPE[type] ?? 1
+    if (capacityInputRef.current) {
+      capacityInputRef.current.value = defaultCap
+    }
+  }
 
   const { data: amenities = [], isLoading } = useQuery({
     queryKey: ['amenities'],
@@ -398,23 +407,26 @@ const AdminAmenities = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Type</label>
-              <select name="type" className="form-field" defaultValue={selectedAmenity?.type || ''} required>
+              <select name="type" className="form-field" defaultValue={selectedAmenity?.type || ''} onChange={handleTypeChange} required>
                 <option value="">Select type</option>
                 <option value="desk">Desk</option>
                 <option value="meeting-room">Meeting Room</option>
                 <option value="podcast-room">Podcast Room</option>
+                <option value="event-space">Event Space (Main Hall)</option>
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Capacity</label>
               <input
+                ref={capacityInputRef}
                 type="number"
                 name="capacity"
                 className="form-field"
-                defaultValue={selectedAmenity?.capacity || 1}
+                defaultValue={selectedAmenity?.capacity ?? DEFAULT_CAPACITY_BY_TYPE[selectedAmenity?.type] ?? 1}
                 min="1"
                 required
               />
+              <small className="form-hint">Event Space (Main Hall) accommodates up to 80 people</small>
             </div>
             <div className="form-group">
               <label className="form-label">Description</label>

@@ -52,6 +52,8 @@ const Home = () => {
     if (!currentUser) {
       setSelectedAmenity(amenity)
       setAuthPromptOpen(true)
+    } else if (amenity.type === 'event-space') {
+      navigate(`/member/events?action=create&amenityId=${amenity.id}`)
     } else {
       navigate(`/member/bookings?amenityId=${amenity.id}`)
     }
@@ -59,7 +61,10 @@ const Home = () => {
 
   const handleLogin = () => {
     if (selectedAmenity) {
-      navigate(`/login?redirect=/member/bookings&amenityId=${selectedAmenity.id}`)
+      const redirectPath = selectedAmenity.type === 'event-space'
+        ? `/login?redirect=/member/events&action=create&amenityId=${selectedAmenity.id}`
+        : `/login?redirect=/member/bookings&amenityId=${selectedAmenity.id}`
+      navigate(redirectPath)
     } else if (selectedEvent) {
       navigate(`/login?redirect=/member/events&eventId=${selectedEvent.id}&action=register`)
     } else {
@@ -69,7 +74,10 @@ const Home = () => {
 
   const handleSignUp = () => {
     if (selectedAmenity) {
-      navigate(`/login?signup=true&redirect=/member/bookings&amenityId=${selectedAmenity.id}`)
+      const redirectPath = selectedAmenity.type === 'event-space'
+        ? `/login?signup=true&redirect=/member/events&action=create&amenityId=${selectedAmenity.id}`
+        : `/login?signup=true&redirect=/member/bookings&amenityId=${selectedAmenity.id}`
+      navigate(redirectPath)
     } else if (selectedEvent) {
       navigate(`/login?signup=true&redirect=/member/events&eventId=${selectedEvent.id}&action=register`)
     } else {
