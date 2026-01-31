@@ -216,14 +216,12 @@ const UnifiedCalendar = ({ viewMode = 'month' }) => {
   }, [currentDate])
 
   const handlePrevMonth = () => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(newDate.getMonth() - 1)
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
     setCurrentDate(newDate)
   }
 
   const handleNextMonth = () => {
-    const newDate = new Date(currentDate)
-    newDate.setMonth(newDate.getMonth() + 1)
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     setCurrentDate(newDate)
   }
 
