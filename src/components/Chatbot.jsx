@@ -174,7 +174,7 @@ const Chatbot = () => {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle chatbot"
       >
-        {isOpen ? '×' : '💬'}
+        {isOpen ? '×' : '🤖'}
       </button>
     </>
   )
