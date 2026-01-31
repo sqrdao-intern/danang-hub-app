@@ -5,6 +5,67 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+const HUB_TIMEZONE = "Asia/Ho_Chi_Minh";
+const BUSINESS_START_HOUR = 8;
+const BUSINESS_END_HOUR = 18;
+
+const AMENITY_TYPES_WITH_BUSINESS_HOURS = [
+  "desk", "meeting-room", "podcast-room",
+];
+
+/**
+ * @param {Date} date The date to extract time from
+ * @param {string} timeZone IANA timezone (e.g. Asia/Ho_Chi_Minh)
+ * @return {number} Minutes since midnight in that timezone
+ */
+function getMinutesSinceMidnight(date, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const hour = parseInt(parts.find((p) => p.type === "hour").value, 10);
+  const minute = parseInt(parts.find((p) => p.type === "minute").value, 10);
+  const second = parseInt(parts.find((p) => p.type === "second").value, 10);
+  return hour * 60 + minute + second / 60;
+}
+
+/**
+ * @param {Date} date The date to check
+ * @return {boolean} True if Monday–Friday in hub timezone
+ */
+function isWeekday(date) {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: HUB_TIMEZONE,
+    weekday: "short",
+  }).format(date);
+  return !["Sat", "Sun"].includes(weekday);
+}
+
+/**
+ * @param {string} startTime ISO start time
+ * @param {string} endTime ISO end time
+ * @return {boolean} True if within 8am-6pm Mon–Fri Vietnam time, same day
+ */
+function isWithinBusinessHours(startTime, endTime) {
+  const startDate = new Date(startTime);
+  const endDate = new Date(endTime);
+  if (!isWeekday(startDate)) return false;
+  const fmt = (d) => new Intl.DateTimeFormat("en-CA", {
+    timeZone: HUB_TIMEZONE,
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d);
+  if (fmt(startDate) !== fmt(endDate)) return false;
+  const startMins = getMinutesSinceMidnight(startDate, HUB_TIMEZONE);
+  const endMins = getMinutesSinceMidnight(endDate, HUB_TIMEZONE);
+  const openMins = BUSINESS_START_HOUR * 60;
+  const closeMins = BUSINESS_END_HOUR * 60;
+  if (endMins <= startMins) return false;
+  return startMins >= openMins && endMins <= closeMins;
+}
+
 // Check for booking conflicts
 exports.checkBookingConflicts = functions.https.onCall(
     async (data, context) => {
@@ -90,6 +151,15 @@ exports.checkSlotAvailability = functions.https.onCall(
                 available: false,
                 error: "Event Hall requires 2-week advance booking.",
                 minBookableDate: minDate.toISOString(),
+              };
+            }
+          }
+          if (AMENITY_TYPES_WITH_BUSINESS_HOURS.includes(amenity.type)) {
+            if (!isWithinBusinessHours(startTime, endTime)) {
+              return {
+                available: false,
+                error: "Desks, meeting rooms, and podcast rooms are only " +
+                  "available Mon–Fri, 8 AM–6 PM (Vietnam time).",
               };
             }
           }
