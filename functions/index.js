@@ -89,6 +89,7 @@ exports.checkSlotAvailability = functions.https.onCall(
               return {
                 available: false,
                 error: "Event Hall requires 2-week advance booking.",
+                minBookableDate: minDate.toISOString(),
               };
             }
           }
