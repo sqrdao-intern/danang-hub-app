@@ -5,6 +5,8 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--border-radius);
   padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
 }
 
 .calendar-controls {
@@ -46,15 +48,16 @@
 }
 
 .calendar-grid-month {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  width: 100%;
 }
 
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
+  gap: 4px;
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .weekday-header {
@@ -69,21 +72,25 @@
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--spacing-xs);
+  grid-auto-rows: 120px;
+  gap: 4px;
+  width: 100%;
 }
 
 .calendar-day {
-  min-height: 120px;
-  padding: var(--spacing-sm);
+  height: 120px;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--border-radius);
-  transition: var(--transition);
+  border-radius: 8px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .calendar-day.empty {
   background: transparent;
-  border: none;
+  border-color: transparent;
+  pointer-events: none;
 }
 
 .calendar-day.today {
@@ -235,34 +242,42 @@
   }
   
   .calendar-day {
-    min-height: 80px;
-    padding: var(--spacing-xs);
+    height: 80px;
+    padding: 4px;
   }
 
   .day-number {
     font-size: 0.85rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 2px;
   }
   
   .day-item {
     font-size: 0.7rem;
-    padding: 0.25rem 0.4rem;
-    min-height: 20px;
+    padding: 2px 4px;
+  }
+
+  .calendar-weekdays {
+    gap: 2px;
   }
 
   .calendar-days {
     gap: 2px;
+    grid-auto-rows: 80px;
   }
 }
 
 @media (max-width: 480px) {
   .calendar-day {
-    min-height: 70px;
+    height: 70px;
+  }
+
+  .calendar-days {
+    grid-auto-rows: 70px;
   }
 
   .day-item {
     font-size: 0.65rem;
-    padding: 0.2rem 0.3rem;
+    padding: 2px 3px;
   }
 
   .calendar-title {
